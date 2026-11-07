@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>Whizkid Dashboards</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5' fill='%23B8914A'/%3E%3Ctext x='44' y='58' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='46' fill='%2314233A'%3Ew%3C/text%3E%3Ctext x='63' y='76' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='42' fill='%23F3ECDD' stroke='%2314233A' stroke-width='2.4' paint-order='stroke'%3Ek%3C/text%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* wk-tokens — the same set as deploy/wk/static/wk.css */
+:root{--bg:#F5F2EA;--surface:#FFFFFF;--panel:#FAF8F3;--border:#E4DED1;--border2:#CDC4B0;--text:#2A3647;--bright:#101C2E;--dim:#5B6676;--accent:#80622A;--brass:#A8843F;--accent-soft:rgba(168,132,63,.15);--navy-ink:#14233A;--green:#1C7444;--red:#AE3328;--yellow:#8A5D05;--hdr-bg:#14233A;--hdr-text:#F4EFE4;--hdr-dim:#B8C1CF;--brass-hi:#D4AF67;--shadow:0 1px 2px rgba(16,28,46,.06),0 2px 8px rgba(16,28,46,.04);
+  --display:'Fraunces',Georgia,'Times New Roman',serif;--sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;color-scheme:light}
+:root[data-theme="dark"]{--bg:#0C1524;--surface:#121E33;--panel:#16243C;--border:#25385B;--border2:#354B72;--text:#D3DAE5;--bright:#F4EFE4;--dim:#97A5BB;--accent:#D4AF67;--brass:#C9A45C;--accent-soft:rgba(212,175,103,.16);--navy-ink:#D4AF67;--green:#5BC98B;--red:#EF8579;--yellow:#E6BC55;--hdr-bg:#0A1220;--shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1524;--surface:#121E33;--panel:#16243C;--border:#25385B;--border2:#354B72;--text:#D3DAE5;--bright:#F4EFE4;--dim:#97A5BB;--accent:#D4AF67;--brass:#C9A45C;--accent-soft:rgba(212,175,103,.16);--navy-ink:#D4AF67;--green:#5BC98B;--red:#EF8579;--yellow:#E6BC55;--hdr-bg:#0A1220;--shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+header{min-height:62px;display:flex;align-items:center;padding:0 22px;gap:12px;background:var(--hdr-bg);border-bottom:3px solid var(--brass-hi)}
+.wk-badge{width:40px;height:40px;flex-shrink:0}
+.logo{font-family:var(--display);font-weight:600;font-size:25px;letter-spacing:-.01em;color:var(--hdr-text);line-height:1}
+.logo b{font-weight:600;color:var(--brass-hi)}
+.hd{font-size:11px;margin-top:4px;color:var(--hdr-dim);letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.spacer{flex:1}
+.hbtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--hdr-text);background:transparent;border:1px solid rgba(244,239,228,.25);border-radius:7px;padding:6px 10px;cursor:pointer;min-height:34px}
+.hbtn:hover{border-color:var(--brass-hi)}
+main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:22px 22px 40px}
+.banner{display:none;margin:4px 0 6px;padding:10px 14px;border:1px solid var(--yellow);border-radius:9px;color:var(--yellow);background:var(--surface);font-size:13px;line-height:1.5}
+.banner.on{display:block}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:2px 0 4px}
+h2{font-family:var(--display);font-size:19px;font-weight:600;color:var(--bright);margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+h2::after{content:'';flex:1;height:1px;background:var(--border)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+a.card{display:block;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--brass);border-radius:10px;padding:16px 18px;text-decoration:none;color:inherit;box-shadow:var(--shadow);position:relative}
+a.card:hover{border-color:var(--brass);background:var(--panel)}
+a.card.shared{border-top-color:var(--navy-ink)}
+.k{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);padding-right:96px}
+.t{font-family:var(--display);font-size:24px;font-weight:600;color:var(--bright);margin-top:4px;line-height:1.1}
+.t b{color:var(--accent);font-weight:600}
+.d{font-size:13px;line-height:1.55;color:var(--text);margin-top:8px}
+.p{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.st{position:absolute;top:12px;right:14px;font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:3px 9px;border-radius:999px;border:1px solid var(--border2);color:var(--dim);background:var(--surface)}
+.st.live{color:var(--green);border-color:var(--green)}.st.stale{color:var(--yellow);border-color:var(--yellow)}.st.off{color:var(--red);border-color:var(--red)}
+.empty{grid-column:1/-1;border:1px dashed var(--border2);border-radius:10px;padding:18px;color:var(--dim);font-size:13px;line-height:1.55}
+footer{padding:12px 22px;border-top:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--dim);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer b{color:var(--bright)}
+@media (max-width:700px){header{padding:0 12px}.hd{display:none}main{padding:16px 16px 30px}.grid{grid-template-columns:1fr}footer{padding:12px 16px}}
+</style>
+</head>
+<body>
+<header>
+  <svg class="wk-badge" viewBox="0 0 100 100" role="img" aria-label="Whizkid Automations"><polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="#B8914A"/><polygon points="50,11 84,30.5 84,69.5 50,89 16,69.5 16,30.5" fill="none" stroke="#14233A" stroke-opacity=".5" stroke-width="1.8"/><text x="44" y="58" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="46" fill="#14233A">w</text><text x="63" y="76" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="42" fill="#F3ECDD" stroke="#14233A" stroke-width="2.4" paint-order="stroke">k</text></svg>
+  <div><div class="logo">Whizkid <b>Automations</b></div><div class="hd" id="tagline">Model dashboards</div></div>
+  <div class="spacer"></div>
+  <button class="hbtn" id="theme-btn" title="Switch light / dark" aria-label="Switch light or dark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+</header>
+
+<main>
+  <div class="banner" id="banner"></div>
+  <div class="meta" id="meta">loading…</div>
+  <div id="groups"></div>
+</main>
+
+<footer>
+  <div><b>Whizkid Automations</b> · read-only snapshots of the Pi dashboards, refreshed every <span id="ivl">15</span> min</div>
+  <div id="foot-pub"></div>
+</footer>
+
+<script>
+const SITE = {"title":"Whizkid Automations","tagline":"Model dashboards","boards":[{"slug":"nfl","group":"Player props","kicker":"NFL \u00b7 tackles","name":"Whiz<b>Shap<\/b>","desc":"Tackle projections, the prop board against the multi-book consensus, units and CLV."},{"slug":"nhl-hub","group":"Player props","kicker":"NHL \u00b7 games \u00b7 players \u00b7 results \u00b7 teams","name":"Hawkey <b>Hub<\/b>","desc":"The NHL front page: tonight's games with every price, the shots and saves boards, results and team pages."},{"slug":"nhl","group":"Player props","kicker":"NHL \u00b7 shots on goal","name":"Hawkey <b>Shots<\/b>","desc":"Skater SOG projections, every price on the board, the line ladder, units and CLV by night."},{"slug":"nhl-saves","group":"Player props","kicker":"NHL \u00b7 goalie saves","name":"Hawkey <b>Saves<\/b>","desc":"Starting-goalie save projections with the pulled-starter tail, priced against the board."},{"slug":"nba-hub","group":"Player props","kicker":"NBA \u00b7 games \u00b7 props \u00b7 sit tool","name":"Boxout <b>NBA<\/b>","desc":"Every game with Tipoff's line and every player's priced props; sit a player and watch the minutes, the props and the line move. Results and team ratings."},{"slug":"nba","group":"Player props","kicker":"NBA \u00b7 rebounds \u00b7 assists \u00b7 threes","name":"Box<b>out<\/b>","desc":"Minutes \u2192 volume \u2192 rate; the priced board, injuries, model and market diagnostics."},{"slug":"nhl-games","group":"Game markets","kicker":"NHL \u00b7 sides \u00b7 totals \u00b7 1st period","name":"Hawkey <b>Lines<\/b>","desc":"The NHL game model: every game's moneyline, puck line, total and 1st-period total against the market, the 1P streak tests, plus results."},{"slug":"nba-games","group":"Game markets","kicker":"NBA \u00b7 sides \u00b7 totals \u00b7 halves \u00b7 quarters","name":"Tip<b>off<\/b>","desc":"Every NBA game priced: full game, halves and quarters, the matchup view, today's bets and results."},{"slug":"cb","group":"Game markets","kicker":"NCAA D1 baseball \u00b7 every game","name":"Omaha <b>Baseball<\/b>","desc":"Win probability, run line and totals for every D1 game; the EV board and grading."},{"slug":"cbh","group":"Game markets","kicker":"NCAA D-I hockey \u00b7 games \u00b7 open plays","name":"Hawkey <b>Board<\/b>","desc":"Every D-I men's hockey game as a card, the plays still open, the EV board, results, teams and standings."},{"slug":"milb","group":"Game markets","kicker":"MiLB \u00b7 AAA \u00b7 AA \u00b7 every game","name":"Call<b>up<\/b>","desc":"Every Triple-A and Double-A game: projected lineups and starters, win %, runs and the run distribution against the market, how the lineups turned out, and the walk-forward record."},{"slug":"golf","group":"Game markets","kicker":"PGA \u00b7 outrights \u00b7 matchups","name":"Caddie <b>EV<\/b>","desc":"Tournament sims, the priced board, grading and the live leaderboard."},{"slug":"tennis","group":"Racket sports","kicker":"Tennis \u00b7 ATP / WTA match winner","name":"Base<b>line<\/b>","desc":"ATP and WTA match-winner prices against the board, match detail, plays and results."},{"slug":"table-tennis","group":"Racket sports","kicker":"Table tennis \u00b7 match winner","name":"Top<b>spin<\/b>","desc":"Table tennis match-winner board, head-to-head and form per match, plays and results."},{"slug":"weather","group":"Conditions","kicker":"NFL \u00b7 CFB \u00b7 MLB \u00b7 CBB","name":"Game-Day <b>Weather<\/b>","desc":"Venue conditions for the slate: wind on the field, precipitation, temperature."}],"artifacts":[],"interval_min":15,"heartbeat_min":60};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nameHtml = s => esc(s).replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>');
+const ago = t => { if (!t) return '—'; const m = Math.round((Date.now() - new Date(t)) / 60000);
+  return m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
+const when = t => t ? new Date(t).toLocaleString([], {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}) : '—';
+
+$('theme-btn').addEventListener('click', () => { const r = document.documentElement;
+  const c = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const n = c === 'dark' ? 'light' : 'dark'; r.setAttribute('data-theme', n); try { localStorage.setItem('wk-theme', n); } catch (e) {} });
+
+function render(status) {
+  const S = SITE || {boards: [], artifacts: []};
+  if (S.tagline) $('tagline').textContent = S.tagline;
+  $('ivl').textContent = S.interval_min || 15;
+  const boards = (status && status.boards) || {};
+  const groups = [];
+  S.boards.forEach(b => { let g = groups.find(x => x.name === b.group); if (!g) groups.push(g = {name: b.group || 'Dashboards', items: []}); g.items.push(b); });
+  const okWindow = ((S.heartbeat_min || 60) + (S.interval_min || 15) + 15) * 60000;
+
+  let html = groups.map(g => `<h2>${esc(g.name)}</h2><div class="grid">` + g.items.map(b => {
+    const st = boards[b.slug] || {};
+    const lastOk = st.last_ok ? new Date(st.last_ok).getTime() : 0;
+    const dataAge = st.data_asof ? Date.now() - new Date(st.data_asof).getTime() : null;
+    let cls = '', label = '…', tip = '';
+    if (!st.last_try && !st.last_ok) { label = 'NEW'; }
+    else if (st.ok === false) { cls = 'off'; label = 'PI OFFLINE'; tip = `The Pi could not reach this board on its last run (${st.error || 'no answer'}). Showing the copy from ${when(st.last_ok)}.`; }
+    else if (dataAge !== null && dataAge > 2 * 86400000) { cls = 'stale'; label = 'STALE DATA'; tip = `The model's newest output is from ${when(st.data_asof)}; the pipeline may not have run.`; }
+    else if (lastOk && Date.now() - lastOk < okWindow) { cls = 'live'; label = 'FRESH'; tip = `Snapshot taken ${when(st.last_ok)}`; }
+    else { cls = 'stale'; label = 'OLD COPY'; tip = `Last good snapshot ${when(st.last_ok)}`; }
+    return `<a class="card" href="${esc(b.slug)}/"><span class="st ${cls}" title="${esc(tip)}">${label}</span>
+      <div class="k">${esc(b.kicker)}</div><div class="t">${nameHtml(b.name)}</div>
+      ${b.desc ? `<div class="d">${esc(b.desc)}</div>` : ''}
+      <div class="p"><span>data ${esc(when(st.data_asof))}</span><span>snapshot ${esc(ago(st.last_ok))}</span></div></a>`;
+  }).join('') + '</div>').join('');
+
+  const A = S.artifacts || [];
+  html += `<h2>Shared with me</h2><div class="grid">` + (A.length ? A.map(a => `
+    <a class="card shared" href="${esc(a.href)}">${a.needs_claude ? '<span class="st stale" title="This page calls Claude features that only work on claude.ai; parts of it may not run here.">CLAUDE-ONLY</span>' : ''}
+      <div class="k">${esc(a.from ? 'from ' + a.from : 'shared')}</div><div class="t">${esc(a.title)}</div>
+      ${a.desc ? `<div class="d">${esc(a.desc)}</div>` : ''}
+      <div class="p"><span>added ${esc(a.added)}</span></div></a>`).join('')
+    : `<div class="empty">Nothing here yet.</div>`) + '</div>';
+  $('groups').innerHTML = html;
+
+  const pub = status && status.published_at;
+  $('meta').textContent = pub ? `Updated ${ago(pub)} · ${when(pub)}` : 'Not published yet';
+  $('foot-pub').textContent = pub ? `published ${when(pub)}` : '';
+  const late = pub && (Date.now() - new Date(pub)) > 3 * (S.heartbeat_min || 60) * 60000;
+  if (late) { $('banner').textContent = `The Pi hasn't published since ${when(pub)}. Everything below is the last copy it sent.`; $('banner').classList.add('on'); }
+}
+
+render(null);
+fetch('status.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).then(render).catch(() => render(null));
+setInterval(() => fetch('status.json', {cache: 'no-cache'}).then(r => r.json()).then(render).catch(() => {}), 120000);
+</script>
+</body>
+</html>

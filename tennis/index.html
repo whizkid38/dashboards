@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<script>
+/* wk-snap.js — injected into every board page by wk_site.py (do not load it directly).
+   The page's own code is untouched: its fetch(API + "/api/…") calls are answered from snap/ files saved on the
+   last run. GET → the saved response (same status as the Pi gave); anything that writes → a read-only error;
+   an API call that was not saved → a 404 with a message. Calls to other sites pass straight through. */
+(function () {
+  var S = window.__WK_SNAP = {"v":"daa1e5ab6b84","files":{"api/config":["snap/api_config-123c3929.json",200,"application/json"],"api/board":["snap/api_board-f64d53a0.json",200,"application/json"],"api/results":["snap/api_results-2327cee0.json",200,"application/json"],"api/job":["snap/api_job-933c8570.json",200,"application/json"],"api/open_plays":["snap/api_open_plays-7bcf3db8.json",200,"application/json"],"api/model":["snap/api_model-45a95834.json",200,"application/json"],"api/health":["snap/api_health-083f73b2.json",200,"application/json"],"api/match/9ebb22b87460accfb899c0e613b47651":["snap/api_match_9ebb22b87460accfb899c0e613b47651-9aa8eef8.json",200,"application/json"],"api/match/d4b8a9b232417b21fd0dd2de1af179ee":["snap/api_match_d4b8a9b232417b21fd0dd2de1af179ee-9f23b568.json",200,"application/json"],"api/match/espn-187453":["snap/api_match_espn-187453-c15d3669.json",200,"application/json"],"api/match/espn-187452":["snap/api_match_espn-187452-dfe9ffff.json",200,"application/json"],"api/match/espn-187447":["snap/api_match_espn-187447-a34a3b15.json",200,"application/json"],"api/match/espn-187446":["snap/api_match_espn-187446-4a80b468.json",200,"application/json"],"api/match/espn-187451":["snap/api_match_espn-187451-a481f82f.json",200,"application/json"],"api/match/espn-187449":["snap/api_match_espn-187449-43ffab87.json",200,"application/json"],"api/match/espn-187450":["snap/api_match_espn-187450-ee03fcd8.json",200,"application/json"],"api/match/espn-187448":["snap/api_match_espn-187448-4984fbec.json",200,"application/json"],"api/match/espn-186594":["snap/api_match_espn-186594-20bd53dc.json",200,"application/json"],"api/match/espn-186593":["snap/api_match_espn-186593-68f91bf7.json",200,"application/json"],"api/match/espn-186735":["snap/api_match_espn-186735-8cedc7f3.json",200,"application/json"],"api/match/espn-186688":["snap/api_match_espn-186688-45ec2419.json",200,"application/json"],"api/match/espn-186684":["snap/api_match_espn-186684-c449ab8e.json",200,"application/json"]},"root":"../","name":"Baseline","abs":false,"eval":null,"noq":[],"msg_ro":"Read-only snapshot. Pulls, grading and edits run on the Pi.","msg_missing":"Not in the public snapshot. This view runs live on the Pi."};
+  if (!S || !window.fetch) return;
+  var dir = location.pathname.replace(/[^\/]*$/, '');          // the board's folder, e.g. /whizkid-site/nfl/
+  var real = window.fetch.bind(window);
+
+  function keyOf(u) {
+    var rel;
+    if (u.pathname.indexOf(dir) === 0) rel = u.pathname.slice(dir.length).replace(/^\/+/, '');
+    else if (S.abs && u.pathname.indexOf('/api/') === 0) rel = u.pathname.slice(1);   // pages that call "/api/…"
+    else return null;
+    try { rel = decodeURIComponent(rel); } catch (e) {}
+    if (!/^([A-Za-z0-9_-]+\/)?api\//.test(rel)) return null;                  // api/… or e.g. saves/api/… (hub pages)
+    for (var i = 0; i < (S.noq || []).length; i++) if (rel.indexOf(S.noq[i]) === 0) return rel;   // player cards: path only
+    var ps = [];
+    u.searchParams.forEach(function (v, k) { ps.push([k, v]); });
+    ps.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); });
+    return rel + (ps.length ? '?' + ps.map(function (p) { return p[0] + '=' + p[1]; }).join('&') : '');
+  }
+  function json(obj, status) {
+    return new Response(JSON.stringify(obj), {status: status, headers: {'Content-Type': 'application/json'}});
+  }
+
+  // ── "evaluate a line": the Pi's own probability at each line (snap/evaluator.json), your price priced here ──
+  var EV = null;
+  function dec(o) { return o > 0 ? 1 + o / 100 : 1 + 100 / Math.abs(o); }
+  function implied(o) { return o > 0 ? 100 / (o + 100) : Math.abs(o) / (Math.abs(o) + 100); }
+  function american(p) { if (!(p > 0 && p < 1)) return null; return p >= 0.5 ? Math.round(-100 * p / (1 - p)) : Math.round(100 * (1 - p) / p); }
+  function evaluate(u) {
+    var q = u.searchParams, fail = function (m) { return json({error: m}, 400); };
+    if (q.get('period')) return Promise.resolve(fail('On the public copy, Evaluate a line works on the latest period only.'));
+    var load = EV ? Promise.resolve(EV) : real(dir + S.eval + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (d) { return (EV = d); });
+    return load.then(function (E) {
+      var P = E.players[String(q.get('player'))];
+      if (!P) return fail('No line ladder for this player in the public copy (not on the latest projections).');
+      var ln = Math.round(parseFloat(q.get('line')) * 2) / 2, g = P.g[String(ln)];
+      if (!g) { var ks = Object.keys(P.g).map(Number).sort(function (a, b) { return a - b; });
+        return fail('The public copy prices ' + ks[0] + '–' + ks[ks.length - 1] + (E.kelly === 'cond' ? ' (half lines)' : '') + ' for this player; ' + ln + ' is outside it.'); }
+      var po = g[0], pu = g[1], pp = g[2] || 0, nb = (P.nb || {})[String(ln)];
+      var bar = (E.single && nb === 1) ? E.single : E.bar;
+      var over = parseInt(q.get('over'), 10), under = parseInt(q.get('under'), 10);
+      var sides = [['over', over, po, pu], ['under', under, pu, po]].map(function (x) {
+        var pw = x[2], pl = x[3], o = x[1], s = {side: x[0], p_win: pw, p_lose: pl, fair: american(pw / Math.max(pw + pl, 1e-9)), odds: isNaN(o) ? null : o};
+        if (isNaN(o) || o === 0 || Math.abs(o) < 100) return s;
+        var b = dec(o) - 1, ev = (pw * b - pl) * 100, k;
+        if (E.kelly === 'cond') { var p = pw / Math.max(pw + pl, 1e-12); k = Math.max(0, (p * b - (1 - p)) / b) * E.kf * 100; }
+        else k = Math.max(0, (b * pw - pl) / b * E.kf) * 100;
+        s.ev = ev; s.kelly_pct = Math.min(k, E.cap_pct); s.implied = implied(o);
+        var fl = [];
+        if (E.max_ev != null && ev > E.max_ev) fl.push({block: true, text: 'Over the ' + E.max_ev + '% sanity cap. Edges this big are usually a wrong line, a wrong player or stale news, so the pipeline skips them. Check before betting.'});
+        if (E.kelly === 'cond' && !P.lam_k) fl.push({block: true, text: "No market λ for this player yet. The pipeline won't bet a model-only number."});
+        if (E.sport === 'saves' && P.status && P.status !== 'Confirmed') fl.push({block: false, text: 'Starter is ' + P.status + ", not confirmed. A goalie who doesn't start is usually a void, but check your book's rule."});
+        if (E.sport === 'shots' && P.status && /\b(out|scratch|scratched|ir|ltir|gtd|questionable|doubtful|dtd|unconfirmed)\b/i.test(P.status)) fl.push({block: false, text: 'Lineup status is ' + P.status + ". Make sure he's playing before you bet."});
+        if (E.single && E.bar <= ev && ev < E.single) fl.push({block: false, text: 'Clears ' + E.bar + '%, but when only one book hangs this line the pipeline wants ' + E.single + '%.'});
+        s.flags = fl;
+        return s;
+      });
+      var notes = (P.notes || []).concat(E.notes || []);
+      notes.push('Public copy: model probabilities from the Pi as of ' + new Date(E.built_at).toLocaleString() + (E.kelly === 'cond' ? '; the star-under and model-side rules are only checked on the Pi.' : '.'));
+      return json({line: ln, sides: sides, bar: bar, lam_label: P.lam_label, p_push: pp, notes: notes,
+                   hold_pct: (!isNaN(over) && !isNaN(under)) ? (implied(over) + implied(under) - 1) * 100 : null}, 200);
+    }).catch(function () { return fail('The public copy could not load its line ladder.'); });
+  }
+
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var u;
+    try { u = new URL(url, location.href); } catch (e) { return real(input, init); }
+    if (u.origin !== location.origin) return real(input, init);
+    var k = keyOf(u);
+    if (k === null) return real(input, init);
+    if (method !== 'GET' && method !== 'HEAD')
+      return Promise.resolve(json({error: S.msg_ro, ok: false, started: false, readonly: true}, 403));
+    if (S.eval && k.indexOf('api/wk/evaluate') === 0) return evaluate(u);
+    var hit = S.files[k];
+    if (!hit) {
+      (S.misses = S.misses || []).push(k);
+      if (window.console) console.info('[wk-snap] not in the snapshot:', k);
+      return Promise.resolve(json({error: S.msg_missing, readonly: true}, 404));
+    }
+    return real(dir + hit[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) {
+      if (!r.ok) return json({error: 'Snapshot file missing (' + r.status + ')'}, 404);
+      return r.blob().then(function (b) {
+        return new Response(b, {status: hit[1] || 200, headers: {'Content-Type': hit[2] || 'application/json'}});
+      });
+    });
+  };
+})();
+
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Baseline · Tennis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="wk/wk.css"/>
+<style>
+.mt{font-size:12px;color:var(--dim)}
+.sfc{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;letter-spacing:.03em}
+.sfc-Hard{background:var(--lb-bg);color:var(--lb-fg)}.sfc-Clay{background:var(--red-soft);color:var(--red)}.sfc-Grass{background:var(--green-soft);color:var(--green)}
+.vs{color:var(--dim);font-weight:500;margin:0 6px}
+.why{font-size:11.5px;font-weight:600;color:var(--dim)}
+.why.warn{color:var(--yellow)}
+.mini{width:100%;border-collapse:collapse;font-size:12.5px}
+.mini th{font-size:10.5px;padding:5px 4px;cursor:default;background:transparent;border-bottom:1px solid var(--border2);white-space:nowrap}
+.mini td{padding:5px 4px;border-bottom:1px solid var(--border);white-space:nowrap}
+.mini td.r,.mini th.r{text-align:right}
+.mini td:first-child{white-space:normal;line-height:1.3}
+.mini td{font-size:12px}
+.mini td.b{background:var(--green-soft);color:var(--green);font-weight:700}
+.mini tr{cursor:default}
+.drv{display:flex;align-items:center;gap:8px;padding:4px 0}
+.drv .lab{font-size:12px;color:var(--text);width:150px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drv .trk{flex:1;height:8px;background:var(--border);border-radius:4px;position:relative}
+.drv .mid{position:absolute;left:50%;top:-3px;width:1px;height:14px;background:var(--border2)}
+.drv .fill{position:absolute;top:0;height:100%;border-radius:4px}
+.drv .val{font-size:12px;width:44px;text-align:right;font-family:var(--mono)}
+.evrow{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.evrow select,.evrow input{font-size:13px;padding:6px 8px}
+.evrow input{width:90px}
+.evout{font-size:13px;margin-top:8px;line-height:1.6}
+
+/* ── projections board: one line per player ── */
+.legend{font-size:12.5px;color:var(--dim);line-height:1.55;padding:8px 2px 10px}
+.legend b{color:var(--text)}
+#tbl-wrap table.pb{border-collapse:collapse;width:100%}
+.pb th{white-space:nowrap;vertical-align:bottom}
+.pb th .hs{display:block;font-size:10px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--dim);margin-top:2px}
+.pb tbody{cursor:pointer}
+.pb tbody td{padding:6px 8px;border-bottom:none;vertical-align:middle}
+.pb tbody tr.r2 td{border-bottom:1px solid var(--border2)}
+.pb tbody tr.r1 td.span{border-bottom:1px solid var(--border2)}
+.pb tbody:hover td{background:var(--green-soft)}
+.pb tbody.sel td{background:var(--green-soft)}
+.pb tbody.has-ev td.span:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.pb .pl{font-size:14px;font-weight:600;white-space:nowrap}
+.pb .pl.fav{font-weight:700}
+.pb .pl .rk{font-size:11px;color:var(--dim);font-weight:500;margin-left:5px}
+.pb .wp{display:flex;align-items:center;gap:8px;min-width:96px}
+.pb .wp .n{font-family:var(--mono);font-size:15px;font-weight:600;width:42px;text-align:right}
+.pb .wp .bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:40px}
+.pb .wp .bar i{display:block;height:100%;background:var(--brass);border-radius:3px}
+.pb .px{font-family:var(--mono);font-size:14px;font-weight:600;white-space:nowrap}
+.pb .px .bk{font-family:'IBM Plex Sans',sans-serif;font-size:11.5px;font-weight:500;color:var(--dim);margin-left:6px}
+.pb .fr{font-family:var(--mono);font-size:13px;color:var(--dim);white-space:nowrap}
+.pb .mm{font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap}
+.pb .mm b{color:var(--text);font-weight:500}
+.pb .mm .up{color:var(--green)}.pb .mm .dn{color:var(--red)}
+.pb .tm{font-family:var(--mono);font-size:13px;font-weight:600;white-space:nowrap}
+.pb .ev{font-family:var(--mono);font-size:14px;font-weight:600;padding:2px 7px;border-radius:5px;white-space:nowrap;display:inline-block;min-width:58px;text-align:center}
+.ev-q{background:var(--green);color:#fff}
+.ev-g{background:var(--green-soft);color:var(--green);outline:1px solid var(--green)}
+.ev-p{background:var(--green-soft);color:var(--green)}
+.ev-n{color:var(--dim);font-weight:500!important}
+.badge-open{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:4px;background:var(--brass);color:#14233A;margin-left:4px}
+.tab .tcount{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;font-size:11px;line-height:18px;text-align:center;background:var(--brass);color:#14233A;font-weight:700}
+.tab .tcount.zero{background:var(--border);color:var(--dim)}
+.wpt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+.wpt th{font-size:10.5px;font-weight:600;color:var(--dim);text-align:right;padding:4px 5px;border-bottom:1px solid var(--border2);white-space:nowrap}
+.wpt th:first-child,.wpt td:first-child{text-align:left}
+.wpt td{padding:6px 5px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap}
+.wpt td:first-child{font-family:inherit;font-weight:600;white-space:normal}
+.wpt td.big{font-size:15px;font-weight:700}
+.fsbtn{float:right;margin-left:8px}
+
+/* ── full-screen matchup ── */
+#fs{position:fixed;inset:0;z-index:1000;display:none;overflow:auto;-webkit-overflow-scrolling:touch}
+#fs.open{display:block}
+#fs .fs-in{max-width:1500px;margin:0 auto;padding:18px 22px 40px}
+.fs-top{display:flex;align-items:flex-start;gap:14px;position:sticky;top:0;z-index:2;padding:12px 0 12px;border-bottom:1px solid var(--border2);margin-bottom:16px}
+.fs-top .t{flex:1;min-width:0}
+.fs-names{font-family:Fraunces,Georgia,serif;font-size:28px;font-weight:700;line-height:1.15}
+.fs-sub{font-size:13px;color:var(--dim);margin-top:4px}
+.fs-close{font-size:22px;line-height:1;padding:6px 12px}
+.fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fs-card{border:1px solid var(--border2);border-radius:10px;padding:14px 16px;min-width:0;overflow-x:auto}
+.fs-card.wide{grid-column:1/-1}
+.fs-h{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.split{display:flex;height:34px;border-radius:7px;overflow:hidden;font-family:var(--mono);font-weight:700;font-size:14px;margin:6px 0 4px}
+.split div{display:flex;align-items:center;padding:0 10px;white-space:nowrap;overflow:hidden}
+.split .a{background:var(--brass);color:#14233A}
+.split .b{background:var(--navy-ink);color:#F3ECDD;justify-content:flex-end}
+.split-lab{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600}
+.mk{position:relative;height:16px;margin-top:2px}
+.mk span{position:absolute;top:0;transform:translateX(-50%);font-size:10.5px;color:var(--dim);white-space:nowrap}
+.mk span::before{content:'';display:block;width:2px;height:6px;margin:0 auto 1px;background:var(--dim)}
+.wl{display:flex;gap:3px;flex-wrap:wrap;margin:4px 0 10px}
+.wl i{width:18px;height:18px;border-radius:3px;font-style:normal;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff}
+.wl i.w{background:var(--green)}.wl i.l{background:var(--red)}
+.spk{display:block;width:100%;height:64px}
+.fs-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+.kv>div{border:1px solid var(--border);border-radius:7px;padding:7px 9px}
+.kv .k{font-size:10.5px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.kv .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:2px}
+.kv .s{font-size:11px;color:var(--dim)}
+.cbar{position:relative;height:6px;background:var(--border);border-radius:3px;min-width:70px}
+.cbar i{position:absolute;top:-3px;width:3px;height:12px;border-radius:1px}
+.cbar .avg{position:absolute;left:50%;top:-4px;width:1px;height:14px;background:var(--dim)}
+
+/* ── open plays ── */
+.op-wrap{padding:16px 20px 30px;max-width:1500px;margin:0 auto}
+.op-tbl td,.op-tbl th{white-space:nowrap}
+.op-tbl td.pl{font-weight:700;font-size:14px}
+.st{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.st-up{background:var(--lb-bg);color:var(--lb-fg)}
+.st-live{background:var(--green-soft);color:var(--green)}
+.st-wait{background:var(--red-soft);color:var(--yellow)}
+.op-tbl tr{cursor:pointer}
+
+@media (max-width:760px){
+  .fs-grid{grid-template-columns:1fr}
+  .fs-two{grid-template-columns:1fr}
+  #fs .fs-in{padding:10px 12px 30px}
+  .fs-names{font-size:21px}
+  .pb .wp .bar{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="./">
+    <svg class="wk-badge" viewBox="0 0 100 100" role="img" aria-label="Whizkid Automations"><polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="#B8914A"/><polygon points="50,11 84,30.5 84,69.5 50,89 16,69.5 16,30.5" fill="none" stroke="#14233A" stroke-opacity=".5" stroke-width="1.8"/><text x="44" y="58" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="46" fill="#14233A">w</text><text x="63" y="76" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="42" fill="#F3ECDD" stroke="#14233A" stroke-width="2.4" paint-order="stroke">k</text></svg>
+    <div style="min-width:0">
+      <div class="logo">Base<b>line</b></div>
+      <div class="hd">Tennis · ATP / WTA match winner · Whizkid Automations</div>
+    </div>
+  </a>
+  <div class="spacer"></div>
+  <div class="pill" id="mode-pill" style="display:none"></div>
+  <div class="pill" id="meta-pill">LOADING…</div>
+  <div class="pill" id="status-pill" title="board freshness">—</div>
+  <button class="hbtn" id="theme-btn" title="Switch light / dark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+</header>
+
+<nav>
+  <div class="tab active" data-page="projections">Projections</div>
+  <div class="tab" data-page="open">Open plays<span class="tcount zero" id="open-count">0</span></div>
+  <div class="tab" data-page="results">Results</div>
+  <div class="tab" data-page="model">Model</div>
+</nav>
+
+<div class="page active" id="page-projections">
+  <div class="controls">
+    <span class="cl">DAY</span>
+    <select id="day-sel"><option value="">ALL</option></select>
+    <div class="sep"></div>
+    <div class="chips" id="tour-chips">
+      <div class="chip active" data-tour="">ALL</div><div class="chip" data-tour="atp">ATP</div><div class="chip" data-tour="wta">WTA</div>
+    </div>
+    <span class="cl">SEARCH</span>
+    <input type="text" id="search-inp" placeholder="Player or event…"/>
+    <div class="sep"></div>
+    <span class="cl">SORT</span>
+    <div class="chips" id="sort-chips"><div class="chip active" data-sort="time">TIME</div><div class="chip" data-sort="ev">EV</div></div>
+    <div class="sep"></div>
+    <div class="chip" id="ev-only-btn">+EV ONLY</div>
+    <div class="chip" id="priced-only-btn">PRICED ONLY</div>
+    <button class="btn" id="refresh-btn">↻ REFRESH</button>
+    <button class="btn primary" id="pull-btn">PULL ODDS</button>
+    <span class="jobmsg" id="pull-msg"></span>
+    <div class="n-results">SHOWING <span id="n-res">—</span></div>
+  </div>
+  <div class="proj-body">
+    <div class="tbl-wrap" id="tbl-wrap"><div class="empty">LOADING THE BOARD…</div></div>
+    <div class="detail" id="detail-panel">
+      <div class="d-empty" id="d-empty">Select a match to see every price, the model's view and the stats behind it</div>
+      <div id="d-content" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-open">
+  <div class="op-wrap" id="op-content"><div class="empty">LOADING OPEN PLAYS…</div></div>
+</div>
+
+<div class="page" id="page-results">
+  <div class="bt-page" id="bt-content"><div class="empty">LOADING RESULTS…</div></div>
+</div>
+
+<div class="page" id="page-model">
+  <div class="bt-page" id="md-content"><div class="empty">LOADING THE MODEL CHECK…</div></div>
+</div>
+
+<div id="fs" role="dialog" aria-modal="true" aria-label="Matchup"><div class="fs-in" id="fs-in"></div></div>
+
+<div id="tip"></div>
+<footer>
+  <div><b>Whizkid Automations</b> · Baseline</div>
+  <div id="foot-m"></div>
+  <div id="clock"></div>
+</footer>
+
+<script>
+const API = location.pathname.replace(/\/[^\/]*$/, '');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let CFG = {tz:'America/New_York', min_ev:5, max_ev:15}, BOARD = {matches:[]}, SEL = null, OPEN = {plays:[]}, OPEN_KEYS = new Set();
+const DETAIL = {};
+const ST = {tour:'', day:'', q:'', sort:'time', evOnly:false, pricedOnly:false};
+
+async function j(url, opt){ const r = await fetch(API + url, opt); if(!r.ok && r.status!==202 && r.status!==409){ throw new Error((await r.json().catch(()=>({}))).error || r.status); } return r.json(); }
+const pct = (p, d=1) => p==null || isNaN(p) ? '—' : (100*p).toFixed(d) + '%';
+const pc0 = p => p==null || isNaN(p) ? '—' : Math.round(100*p) + '%';
+const am = o => o==null || isNaN(o) ? '—' : (o > 0 ? '+' + Math.round(o) : '' + Math.round(o));
+const fairN = p => (p==null||p<=0||p>=1) ? null : Math.round(p >= .5 ? -100*p/(1-p) : 100*(1-p)/p);
+const fair = p => am(fairN(p));
+const dec = o => o==null||isNaN(o) ? null : (o > 0 ? 1 + o/100 : 1 + 100/(-o));
+const impl = o => { const d = dec(o); return d ? 1/d : null; };
+const evAt = (p, o) => { const d = dec(o); return d==null||p==null ? null : 100*(p*d - 1); };
+const sgn = (v, d=2) => v==null || isNaN(v) ? '—' : (v>0?'+':'') + (+v).toFixed(d);
+const tfmt = iso => { try{ return new Intl.DateTimeFormat('en-US',{timeZone:CFG.tz,weekday:'short',hour:'numeric',minute:'2-digit'}).format(new Date(iso)); }catch(e){ return iso; } };
+const num = (v, f) => v==null || (typeof v==='number' && isNaN(v)) ? '—' : f==='pct' ? pct(v) : f==='int' ? Math.round(v).toLocaleString() : f==='1dp' ? (+v).toFixed(1) : f==='num' ? (+v).toFixed(2) : esc(v);
+const last = n => String(n||'').split(' ').pop();
+const REASON = {data_mode:'would bet (data mode)', no_market:'no prices', availability:'', below_min_ev:'below EV gate', above_max_ev:'over 15% (shadow)',
+  model_market_gap:'model–market gap', started:'started', no_bettable_price:'no price', stale_line:'stale line', opposite_side:'other side',
+  same_side_cap:'cap', capped:'cap', shadowed_by_line:'', already_bet:'already bet'};
+
+function side(m, s){ return (m.sides||[]).find(x => x.side===s) || {}; }
+function bestEv(m){ return Math.max(...(m.sides||[]).map(s => s.ev_pct==null ? -999 : +s.ev_pct)); }
+function probs(m, who){ // every probability for ONE player: blend (act on), model, market, elo, point
+  const f = v => v==null ? null : (who==='home' ? +v : 1 - v);
+  return {bet:f(m.p_bet_home), model:f(m.p_model_home), market:f(m.p_market_home), elo:f(m.p_elo_home), point:f(m.p_point_home)};
+}
+const BOOKS = {draftkings:'DraftKings',fanduel:'FanDuel',betmgm:'BetMGM',fanatics:'Fanatics',bovada:'Bovada',lowvig:'LowVig.ag',betonlineag:'BetOnline.ag',betrivers:'BetRivers',williamhill_us:'Caesars',espnbet:'ESPN BET',ballybet:'Bally Bet',betparx:'betPARX',hardrockbet:'Hard Rock',pinnacle:'Pinnacle',mybookieag:'MyBookie.ag',betus:'BetUS'};
+const bk = k => BOOKS[k] || k || '';
+function bookName(m, k){ return k ? ((m.books||{})[k]?.title || bk(k)) : ''; }
+function isOpen(id, s){ return OPEN_KEYS.has(id + '|' + s); }
+function evTag(s){
+  if(!s || s.ev_pct==null) return '<span class="ev ev-n">—</span>';
+  const e = +s.ev_pct, g = s.ev_gate ?? CFG.min_ev, t = `${e>0?'+':''}${e.toFixed(1)}%`;
+  if(s.qualifies) return `<span class="ev ev-q" title="qualifies — a play">${t}</span>`;
+  if(e >= g && s.skip_reason==='data_mode') return `<span class="ev ev-g" title="clears every gate — data mode, logged as a would-bet">${t}</span>`;
+  if(e > 0) return `<span class="ev ev-p" title="positive but under the ${g}% gate">${t}</span>`;
+  return `<span class="ev ev-n">${t}</span>`;
+}
+function why(m){
+  if(m.availability==='unknown_player') return `<span class="why warn" title="${esc(m.unresolved)}">unknown player</span>`;
+  if(m.availability==='thin_history') return '<span class="why warn">thin history</span>';
+  const h = side(m,'home'), a = side(m,'away'); const s = (h.ev_pct??-99) >= (a.ev_pct??-99) ? h : a;
+  if(s.qualifies) return '<span class="why" style="color:var(--green)">PLAY</span>';
+  return `<span class="why">${esc(REASON[s.skip_reason] ?? s.skip_reason ?? '')}</span>`;
+}
+
+/* ── Projections board ── */
+function playerRow(m, who, cls){
+  const s = side(m, who), P = probs(m, who), name = who==='home' ? m.home : m.away;
+  const fav = P.bet!=null && P.bet > .5;
+  const d = P.model!=null && P.market!=null ? Math.round(100*(P.model-P.market)) : null;
+  const mm = P.model==null && P.market==null ? '<span class="mm">—</span>' :
+    `<span class="mm" title="raw model ${pct(P.model)} · de-vigged market ${pct(P.market)}">${pc0(P.model)} <span style="opacity:.6">·</span> <b>${pc0(P.market)}</b>${d?` <span class="${d>0?'up':'dn'}">${d>0?'▲':'▼'}${Math.abs(d)}</span>`:''}</span>`;
+  return `<tr class="${cls}">
+    <td><div class="pl ${fav?'fav':''}">${esc(name)}${isOpen(m.event_id, who)?'<span class="badge-open">OPEN</span>':''}</div></td>
+    <td><div class="wp"><span class="n">${pc0(P.bet)}</span><span class="bar"><i style="width:${P.bet==null?0:Math.round(100*P.bet)}%"></i></span></div></td>
+    <td class="fr">${fair(P.bet)}</td>
+    <td><span class="px">${am(s.bet_odds)}${s.book?`<span class="bk">${esc(bookName(m, s.book))}</span>`:''}</span></td>
+    <td>${evTag(s)}</td>
+    <td>${mm}</td>`;
+}
+function render(){
+  let ms = (BOARD.matches||[]).filter(m => (!ST.tour || m.tour===ST.tour) && (!ST.day || m.period===ST.day)
+      && (!ST.q || (m.home+' '+m.away+' '+m.tournament).toLowerCase().includes(ST.q))
+      && (!ST.pricedOnly || m.n_books>0) && (!ST.evOnly || bestEv(m) > 0));
+  ms.sort(ST.sort==='ev' ? (a,b) => bestEv(b)-bestEv(a) : (a,b) => a.commence.localeCompare(b.commence));
+  $('#n-res').textContent = ms.length;
+  if(!ms.length){ $('#tbl-wrap').innerHTML = `<div class="empty">${(BOARD.matches||[]).length ? 'No match fits these filters' : 'No board yet — the morning job writes it, or press <b>PULL ODDS</b>'}</div>`; return; }
+  const w = (BOARD.meta||{}).w_model || {};
+  const body = ms.map(m => {
+    const hasEv = (m.sides||[]).some(s => s.qualifies || (s.ev_pct!=null && +s.ev_pct >= (s.ev_gate??CFG.min_ev)));
+    const r1 = playerRow(m, 'home', 'r1');
+    return `<tbody class="${hasEv?'has-ev':''} ${SEL===m.event_id?'sel':''}" data-id="${esc(m.event_id)}">
+      ${r1.replace('<tr class="r1">', `<tr class="r1"><td class="span" rowspan="2"><div class="tm">${tfmt(m.commence)}</div>
+        <div class="pmeta">${esc(m.tour.toUpperCase())} · ${esc(m.tournament.replace(/^(ATP|WTA)\s+/,''))}</div>
+        <div class="pmeta">${m.round?esc(m.round):''}<span class="sfc sfc-${esc(m.surface)}">${esc(m.surface)}</span>${m.best_of===5?' <span class="tag tag-brass">BO5</span>':''}</div></td>`)}
+        <td class="span" rowspan="2"><div class="mono-s">${m.n_books ? m.n_books + ' books' : '—'}</div><div>${why(m)}</div></td></tr>
+      ${playerRow(m, 'away', 'r2')}</tr></tbody>`;
+  }).join('');
+  $('#tbl-wrap').innerHTML = `<div class="legend">Each match shows <b>both players, one line each</b>. <b>Win %</b> is that player's chance — our number to act on
+    (the model blended with the market: ATP ${Math.round(100*(w.atp??0))}% model / WTA ${Math.round(100*(w.wta??0))}% model, the rest market).
+    <b>Fair</b> is the break-even price at that Win %. <b>Best price</b> is the top price at any book; <b>EV</b> is the edge betting that player there
+    (solid green = clears the ${CFG.min_ev}% gate). <b>Model · Mkt</b> are the two inputs for that player, raw model then de-vigged market (▲▼ = how far the model sits from the market).</div>
+    <table class="pb"><thead><tr><th>Time (ET)<span class="hs">event · surface</span></th><th>Player</th>
+    <th>Win %<span class="hs">our number</span></th><th>Fair<span class="hs">no-vig price</span></th><th>Best price<span class="hs">book</span></th>
+    <th>EV<span class="hs">at best price</span></th><th>Model · Mkt<span class="hs">inputs</span></th><th>Status</th></tr></thead>${body}</table>`;
+  document.querySelectorAll('#tbl-wrap tbody').forEach(tb => tb.onclick = () => openMatch(tb.dataset.id));
+}
+
+function drvBars(drv, A, B){
+  if(!drv || !drv.length) return '<div class="mt">—</div>';
+  const mx = Math.max(.02, ...drv.map(d => Math.abs(d.effect)));
+  return drv.map(d => { const w = Math.abs(d.effect)/mx*50, pos = d.effect>0;
+    return `<div class="drv"><div class="lab" title="${esc(d.Edge)}">${esc(d.Edge)}</div><div class="trk"><div class="mid"></div>
+      <div class="fill" style="${pos?'left:50%':'right:50%'};width:${w}%;background:${pos?'var(--green)':'var(--red)'}"></div></div>
+      <div class="val">${(d.effect*100>0?'+':'')}${(d.effect*100).toFixed(1)}</div></div>`; }).join('')
+    + `<div class="mt" style="margin-top:6px">Points of win probability for ${esc(A)} when that edge is switched off. Green favours ${esc(A)}, red ${esc(B)}.</div>`;
+}
+function better(r, k){ if(!r.better || r.home==null || r.away==null || r.home===r.away) return ''; const hw = r.better==='high' ? r.home>r.away : r.home<r.away; return (k==='home')===hw ? 'b' : ''; }
+function tapeTbl(rows, A, B, avg){
+  return `<table class="mini"><thead><tr><th></th><th class="r">${esc(last(A))}</th><th class="r">${esc(last(B))}</th>${avg?'<th class="r">Tour</th>':''}</tr></thead><tbody>`
+    + (rows||[]).map(r => `<tr><td>${esc(r.label)}</td><td class="r ${better(r,'home')}">${num(r.home,r.fmt)}</td><td class="r ${better(r,'away')}">${num(r.away,r.fmt)}</td>${avg?`<td class="r dimtxt">${num(r.tour_avg,r.fmt)}</td>`:''}</tr>`).join('') + '</tbody></table>';
+}
+function formTbl(rows, n=8, full=false){
+  if(!rows || !rows.length) return '<div class="mt">No matches in the database</div>';
+  return `<table class="mini"><thead><tr><th>Date</th><th>Event</th>${full?'<th>Surf</th>':''}<th>Rd</th><th>Opponent</th><th>Res</th><th>Score</th>${full?'<th class="r">Serve</th><th class="r">Return</th><th class="r">A</th><th class="r">DF</th>':''}</tr></thead><tbody>`
+    + rows.slice(0,n).map(r => `<tr><td style="white-space:nowrap">${esc(r.Date)}</td><td>${esc((r.Event||'').slice(0,full?22:16))}</td>${full?`<td>${esc((r.Surface||'').slice(0,1))}</td>`:''}<td>${esc(r.Round)}</td><td>${esc(full?r.Opponent:last(r.Opponent))}${r['Opp rank']?` <span class="dimtxt">#${Math.round(r['Opp rank'])}</span>`:''}</td>
+      <td style="color:${String(r.Result).startsWith('W')?'var(--green)':'var(--red)'};font-weight:700">${esc(r.Result)}</td><td>${esc(r.Score)}</td>
+      ${full?`<td class="r">${pct(r['Serve pts won'],0)}</td><td class="r">${pct(r['Return pts won'],0)}</td><td class="r">${r.Aces==null?'—':Math.round(r.Aces)}</td><td class="r">${r.DFs==null?'—':Math.round(r.DFs)}</td>`:''}</tr>`).join('') + '</tbody></table>';
+}
+function wpTable(m){
+  const H = probs(m,'home'), A = probs(m,'away');
+  return `<table class="wpt"><thead><tr><th>Player</th><th>Win %</th><th>Fair</th><th>Model</th><th>Market</th><th>Elo</th><th>Point</th></tr></thead><tbody>
+    ${[[m.home,H],[m.away,A]].map(([n,P]) => `<tr><td>${esc(n)}</td><td class="big">${pct(P.bet)}</td><td>${fair(P.bet)}</td><td>${pct(P.model)}</td><td>${pct(P.market)}</td><td>${pct(P.elo)}</td><td>${pct(P.point)}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="mt" style="margin-top:6px">Win % = model × ${m.w_model!=null?(+m.w_model).toFixed(2):'—'} blended with the market (${m.n_books||0} books, ${esc(m.anchor_source||'')}). Elo and Point are the two pieces inside the model, shown for reference.</div>`;
+}
+async function getDetail(id){ if(DETAIL[id]) return DETAIL[id]; const d = await j('/api/match/' + encodeURIComponent(id)); DETAIL[id] = d; return d; }
+
+async function openMatch(id){
+  SEL = id; render();
+  const m = BOARD.matches.find(x => x.event_id===id); if(!m) return;
+  const h = side(m,'home'), a = side(m,'away');
+  $('#d-empty').style.display = 'none'; const c = $('#d-content'); c.style.display = 'block';
+  const books = Object.entries(m.books||{}).sort((x,y) => x[0].localeCompare(y[0]));
+  c.innerHTML = `<div class="ds"><button class="btn fsbtn" id="fs-open" title="Open the full matchup card">⤢ FULL SCREEN</button>
+    <div class="dname">${esc(m.home)} <span class="vs">v</span> ${esc(m.away)}</div>
+    <div class="dsub">${esc(m.tournament)} · ${esc(m.surface)}${m.surface_how==='default'?' (assumed)':''} · best of ${m.best_of} · ${tfmt(m.commence)} ET</div>
+    ${m.availability?`<div class="flag">${m.availability==='unknown_player'?'Player not in the database: '+esc(m.unresolved)+' — shown, never a play':'Thin history (under 20 matches) — shown, never a play'}</div>`:''}
+    ${m.gap_blocked?'<div class="flag block">Model and market disagree by more than the gap guard (logit 1.0) — usually a data problem, never a play</div>':''}</div>
+  <div class="ds"><div class="dsl">Win probability</div>${wpTable(m)}</div>
+  <div class="ds"><div class="dsl">Prices</div>
+    <table class="wpt"><thead><tr><th>Player</th><th>Best</th><th>Book</th><th>EV</th><th title="worst price that still clears the gate">Good to</th></tr></thead><tbody>
+      ${[[m.home,h],[m.away,a]].map(([n,s]) => `<tr><td>${esc(n)}${isOpen(m.event_id,s.side)?'<span class="badge-open">OPEN</span>':''}</td><td class="big">${am(s.bet_odds)}</td><td style="font-family:inherit">${esc(bookName(m,s.book))}</td><td>${evTag(s)}</td><td>${am(s.good_to_price)}</td></tr>`).join('')}
+    </tbody></table>
+    ${books.length?`<table class="mini" style="margin-top:10px"><thead><tr><th>Book</th><th class="r">${esc(last(m.home))}</th><th class="r">${esc(last(m.away))}</th></tr></thead><tbody>
+      ${books.map(([k,v]) => `<tr><td>${esc(v.title||k)}</td><td class="r ${h.book===k?'b':''}">${am(v.home)}</td><td class="r ${a.book===k?'b':''}">${am(v.away)}</td></tr>`).join('')}</tbody></table>`:'<div class="mt">No book prices on this board</div>'}
+    <div class="evrow"><select id="ev-side"><option value="home">${esc(m.home)}</option><option value="away">${esc(m.away)}</option></select>
+      <input type="text" id="ev-odds" placeholder="-120"/><button class="btn" id="ev-go">EVALUATE</button></div>
+    <div class="evout" id="ev-out"></div></div>
+  <div class="ds" id="d-more"><div class="mt">Loading the stats…</div></div>`;
+  $('#fs-open').onclick = () => openFull(id);
+  wireEval(id, '#ev-side', '#ev-odds', '#ev-go', '#ev-out');
+  if(!m.has_detail){ $('#d-more').innerHTML = '<div class="mt">No model detail for this match</div>'; return; }
+  try{
+    const d = await getDetail(id); if(SEL!==id) return;
+    const h2hW = (d.h2h||[]).filter(r => (r.Winner||'').toLowerCase()===m.home.toLowerCase()).length;
+    const splits = (d.splits||[]).filter(r => r.Period==='Last 52 weeks' && (r.Surface==='All' || r.Surface===m.surface));
+    $('#d-more').outerHTML = `
+    <div class="ds"><div class="dsl">What moves the model price</div>${drvBars(d.drivers, m.home, m.away)}</div>
+    <div class="ds"><div class="dsl">Tale of the tape</div>${tapeTbl(d.tape, m.home, m.away, false)}</div>
+    <div class="ds"><div class="dsl">Shot by shot (charting)</div><div class="mt" style="margin-bottom:6px">Time-weighted charted matches: ${num(d.chart_n?.home,'1dp')} / ${num(d.chart_n?.away,'1dp')} — under ~5 is mostly tour average</div>${tapeTbl(d.chart, m.home, m.away, true)}</div>
+    <div class="ds"><div class="dsl">Head to head · ${h2hW}–${(d.h2h||[]).length-h2hW}</div>${(d.h2h||[]).length?`<table class="mini"><tbody>${d.h2h.slice(0,8).map(r => `<tr><td style="white-space:nowrap">${esc(String(r.Date).slice(0,7))}</td><td title="${esc(r.Event)}">${esc((r.Event||'').slice(0,14))} <span class="dimtxt">${esc(r.Round)}</span></td><td><b>${esc(last(r.Winner))}</b></td><td style="white-space:normal">${esc(r.Score)}</td></tr>`).join('')}</tbody></table>`:'<div class="mt">First meeting</div>'}</div>
+    <div class="ds"><div class="dsl">Last 52 weeks</div>${splits.length?`<table class="mini"><thead><tr><th></th><th>Surface</th><th class="r">W–L</th><th class="r">Serve</th><th class="r">Return</th></tr></thead><tbody>${splits.map(r => `<tr><td>${esc(last(r.Player))}</td><td>${esc(r.Surface)}</td><td class="r">${r.W}–${r.L}</td><td class="r">${pct(r['Serve pts won'])}</td><td class="r">${pct(r['Return pts won'])}</td></tr>`).join('')}</tbody></table>`:'<div class="mt">—</div>'}</div>
+    <div class="ds"><div class="dsl">${esc(m.home)} · recent</div>${formTbl(d.recent_home)}</div>
+    <div class="ds"><div class="dsl">${esc(m.away)} · recent</div>${formTbl(d.recent_away)}</div>`;
+  }catch(e){ const x = $('#d-more'); if(x) x.innerHTML = `<div class="mt">${esc(e.message)}</div>`; }
+}
+function wireEval(id, sSel, oSel, bSel, outSel){
+  $(bSel).onclick = async () => {
+    try{ const r = await j('/api/evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event_id:id,side:$(sSel).value,odds:$(oSel).value})});
+      $(outSel).innerHTML = r.error ? `<span style="color:var(--red)">${esc(r.error)}</span>` :
+        `EV <b style="color:${r.ev_pct>0?'var(--green)':'var(--red)'}">${r.ev_pct>0?'+':''}${r.ev_pct}%</b> at ${am(r.odds)} · win ${pct(r.p_bet)} (fair ${am(r.fair_american)}) · probation Kelly ${r.stake_pct}% · ${r.clears_gate?'<span style="color:var(--green)">clears the '+r.ev_gate+'% gate</span>':'below the '+r.ev_gate+'% gate'+(r.ev_pct>r.max_ev?' (over the 15% cap)':'')}`;
+    }catch(e){ $(outSel).textContent = e.message; } };
+}
+
+/* ── Full-screen matchup ── */
+function bgOf(el){ let e = el; while(e){ const c = getComputedStyle(e).backgroundColor; if(c && c!=='transparent' && !/rgba\(0, 0, 0, 0\)/.test(c)) return c; e = e.parentElement; } return '#fff'; }
+function spark(rows, key, col){
+  const v = (rows||[]).slice(0,20).reverse().map(r => r[key]).filter(x => x!=null && !isNaN(x));
+  if(v.length < 3) return '<div class="mt">Not enough matches with stats</div>';
+  const W=300,H=64,P=4, mn=Math.min(...v)-.02, mx=Math.max(...v)+.02, X=i=>P+(W-2*P)*i/(v.length-1), Y=x=>H-P-(H-2*P)*(x-mn)/((mx-mn)||1);
+  const avg = v.reduce((s,x)=>s+x,0)/v.length;
+  return `<svg class="spk" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="${P}" x2="${W-P}" y1="${Y(avg)}" y2="${Y(avg)}" stroke="var(--border2)" stroke-dasharray="3 3"/>
+    <polyline fill="none" stroke="${col}" stroke-width="2" points="${v.map((x,i)=>X(i)+','+Y(x)).join(' ')}"/>${v.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x)}" r="2.4" fill="${col}"/>`).join('')}</svg>
+    <div class="mt">Last ${v.length}, oldest → newest · average ${pct(avg)}</div>`;
+}
+function wlStrip(rows){ return `<div class="wl">${(rows||[]).slice(0,20).reverse().map(r => { const w = String(r.Result).startsWith('W'); return `<i class="${w?'w':'l'}" title="${esc(r.Date)} ${esc(r.Event)} ${esc(r.Round)} v ${esc(r.Opponent)} ${esc(r.Score)}">${w?'W':'L'}</i>`; }).join('')}</div>`; }
+function formSummary(rows){
+  const r = (rows||[]).slice(0,20), w = r.filter(x => String(x.Result).startsWith('W')).length;
+  const avg = k => { const v = r.map(x => x[k]).filter(x => x!=null && !isNaN(x)); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : null; };
+  const rk = r.map(x => x['Opp rank']).filter(x => x!=null && !isNaN(x));
+  return `<div class="kv"><div><div class="k">Last ${r.length}</div><div class="v">${w}–${r.length-w}</div></div>
+    <div><div class="k">Serve pts won</div><div class="v">${pct(avg('Serve pts won'))}</div></div>
+    <div><div class="k">Return pts won</div><div class="v">${pct(avg('Return pts won'))}</div></div>
+    <div><div class="k">Avg opp rank</div><div class="v">${rk.length?Math.round(rk.reduce((s,x)=>s+x,0)/rk.length):'—'}</div></div>
+    <div><div class="k">Aces / DFs</div><div class="v">${avg('Aces')==null?'—':avg('Aces').toFixed(1)} / ${avg('DFs')==null?'—':avg('DFs').toFixed(1)}</div><div class="s">per match</div></div></div>`;
+}
+function splitsMatrix(d, m){
+  const sp = d.splits||[]; if(!sp.length) return '<div class="mt">—</div>';
+  const per = ['Last 52 weeks', 'Career (tour + challenger)'], surfs = ['All','Hard','Clay','Grass'];
+  const cols = [['Win %','pct'],['Serve pts won','pct'],['Return pts won','pct'],['Aces / svc pt','pct'],['DFs / svc pt','pct','low'],['BP saved','pct'],['BP converted','pct']];
+  let rows = '';
+  for(const p of per) for(const s of surfs){
+    const A = sp.find(r => r.Period===p && r.Surface===s && r.Player===m.home), B = sp.find(r => r.Period===p && r.Surface===s && r.Player===m.away);
+    if(!A && !B) continue;
+    const hl = (k, low, x, y) => { if(!x || !y || x[k]==null || y[k]==null || x[k]===y[k]) return ''; return ((low ? x[k]<y[k] : x[k]>y[k])) ? 'b' : ''; };
+    const line = (X, Y, n, first) => `<tr${s===m.surface?' style="font-weight:600"':''}>${first?`<td rowspan="2" style="white-space:nowrap">${p==='Last 52 weeks'?'52 wk':'Career'} · <b>${s}</b></td>`:''}<td>${esc(last(n))}</td>
+      <td class="r">${X?X.W+'–'+X.L:'—'}</td>${cols.map(([k,f,low]) => `<td class="r ${hl(k,low,X,Y)}">${X?num(X[k],f):'—'}</td>`).join('')}</tr>`;
+    rows += line(A, B, m.home, true) + line(B, A, m.away, false);
+  }
+  return `<table class="mini"><thead><tr><th>Split</th><th>Player</th><th class="r">W–L</th>${cols.map(c => `<th class="r">${c[0].replace(' / svc pt','/sp').replace(' pts won','')}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>
+    <div class="mt" style="margin-top:6px">This match's surface in bold. Green = the better of the two. Walkovers excluded.</div>`;
+}
+function chartFull(d, m){
+  const rows = d.chart||[]; if(!rows.length) return '<div class="mt">No charting</div>';
+  const pos = (v, avg) => v==null||avg==null||!avg ? 50 : Math.max(2, Math.min(98, 50 + 50*(v-avg)/(Math.abs(avg)*0.35||1)));
+  return `<div class="mt" style="margin-bottom:8px">Time-weighted charted matches: ${num(d.chart_n?.home,'1dp')} (${esc(last(m.home))}) / ${num(d.chart_n?.away,'1dp')} (${esc(last(m.away))}) — under ~5 leans on tour average. The bar shows each player against the tour average (centre line): <span style="color:var(--brass);font-weight:700">■ ${esc(last(m.home))}</span> <span style="color:var(--navy-ink);font-weight:700">■ ${esc(last(m.away))}</span></div>
+    <table class="mini"><thead><tr><th>Stat</th><th class="r">${esc(last(m.home))}</th><th class="r">${esc(last(m.away))}</th><th class="r">Tour</th><th style="width:30%">vs tour</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r.label)}</td><td class="r ${better(r,'home')}">${num(r.home,r.fmt)}</td><td class="r ${better(r,'away')}">${num(r.away,r.fmt)}</td><td class="r dimtxt">${num(r.tour_avg,r.fmt)}</td>
+      <td><div class="cbar"><div class="avg"></div><i style="left:${pos(r.home,r.tour_avg)}%;background:var(--brass)"></i><i style="left:${pos(r.away,r.tour_avg)}%;background:var(--navy-ink)"></i></div></td></tr>`).join('')}</tbody></table>`;
+}
+function booksFull(m){
+  const H = probs(m,'home').bet, A = probs(m,'away').bet, h = side(m,'home'), a = side(m,'away');
+  const bk = Object.entries(m.books||{}).sort((x,y) => (y[1].home??-9e9) - (x[1].home??-9e9));
+  if(!bk.length) return '<div class="mt">No book prices on this board</div>';
+  const evc = v => v==null ? '—' : `<span style="color:${v>0?'var(--green)':'var(--dim)'};font-weight:${v>0?700:400}">${sgn(v,1)}%</span>`;
+  return `<table class="mini"><thead><tr><th>Book</th><th class="r">${esc(last(m.home))}</th><th class="r">Impl.</th><th class="r">EV</th><th class="r">${esc(last(m.away))}</th><th class="r">Impl.</th><th class="r">EV</th><th class="r">Hold</th><th class="r">Updated</th></tr></thead><tbody>
+    ${bk.map(([k,v]) => { const ih = impl(v.home), ia = impl(v.away); return `<tr><td>${esc(v.title||k)}</td>
+      <td class="r ${h.book===k?'b':''}">${am(v.home)}</td><td class="r dimtxt">${pct(ih,0)}</td><td class="r">${evc(evAt(H,v.home))}</td>
+      <td class="r ${a.book===k?'b':''}">${am(v.away)}</td><td class="r dimtxt">${pct(ia,0)}</td><td class="r">${evc(evAt(A,v.away))}</td>
+      <td class="r dimtxt">${ih&&ia?pct(ih+ia-1,1):'—'}</td><td class="r dimtxt">${v.last_update?tfmt(v.last_update):'—'}</td></tr>`; }).join('')}</tbody></table>
+    <div class="mt" style="margin-top:6px">EV is each price against our Win % (${pct(H)} / ${pct(A)}). Green cell = the best price on that player. Line age ${m.line_age_min==null?'—':Math.round(m.line_age_min)+' min'}.</div>`;
+}
+async function openFull(id){
+  const m = BOARD.matches.find(x => x.event_id===id); if(!m) return;
+  const fs = $('#fs'), box = $('#fs-in'), H = probs(m,'home'), A = probs(m,'away'), h = side(m,'home'), a = side(m,'away');
+  fs.style.background = bgOf(document.body);
+  const ph = H.bet==null ? 50 : 100*H.bet;
+  const mark = (p, lab) => p==null ? '' : `<span style="left:${100*p}%">${lab} ${pc0(p)}</span>`;
+  box.innerHTML = `<div class="fs-top" style="background:${bgOf(document.body)}"><div class="t">
+      <div class="fs-names">${esc(m.home)} <span class="vs">v</span> ${esc(m.away)}</div>
+      <div class="fs-sub">${esc(m.tournament)}${m.round?' · '+esc(m.round):''} · <span class="sfc sfc-${esc(m.surface)}" style="margin-left:0">${esc(m.surface)}</span> · best of ${m.best_of} · ${tfmt(m.commence)} ET · ${m.n_books||0} books · ${why(m)}</div>
+      ${m.availability?`<div class="flag">${m.availability==='unknown_player'?'Player not in the database: '+esc(m.unresolved):'Thin history (under 20 matches)'} — shown, never a play</div>`:''}
+      ${m.gap_blocked?'<div class="flag block">Model and market disagree past the gap guard — never a play</div>':''}
+    </div><button class="btn fs-close" id="fs-x" title="Close (Esc)">✕</button></div>
+    <div class="fs-grid">
+      <div class="fs-card"><div class="fs-h">Win probability</div>
+        <div class="split-lab"><span>${esc(m.home)}</span><span>${esc(m.away)}</span></div>
+        <div class="split"><div class="a" style="width:${ph}%">${pct(H.bet)}</div><div class="b" style="width:${100-ph}%">${pct(A.bet)}</div></div>
+        <div class="mk">${mark(H.market,'mkt')}</div><div class="mk">${mark(H.model,'model')}</div>
+        <div class="mt" style="margin-bottom:8px">Markers sit on ${esc(last(m.home))}'s side of the bar.</div>
+        ${wpTable(m)}</div>
+      <div class="fs-card"><div class="fs-h">The bet</div>
+        <div class="kv" style="grid-template-columns:repeat(3,1fr)">
+          ${[[m.home,h,H],[m.away,a,A]].map(([n,s,P]) => `<div><div class="k">${esc(last(n))} best</div><div class="v">${am(s.bet_odds)}</div><div class="s">${esc(bookName(m,s.book))}</div></div>
+          <div><div class="k">${esc(last(n))} EV</div><div class="v">${evTag(s)}</div><div class="s">${esc(REASON[s.skip_reason] ?? s.skip_reason ?? '')}${isOpen(m.event_id,s.side)?' · <b>OPEN</b>':''}</div></div>
+          <div><div class="k">${esc(last(n))} good to</div><div class="v">${am(s.good_to_price)}</div><div class="s">fair ${fair(P.bet)}</div></div>`).join('')}
+        </div>
+        <div class="evrow"><select id="fev-side"><option value="home">${esc(m.home)}</option><option value="away">${esc(m.away)}</option></select>
+          <input type="text" id="fev-odds" placeholder="-120"/><button class="btn" id="fev-go">EVALUATE A PRICE</button></div>
+        <div class="evout" id="fev-out"></div></div>
+      <div class="fs-card wide"><div class="fs-h">Every book</div>${booksFull(m)}</div>
+      <div id="fs-more" class="fs-card wide"><div class="mt">Loading the stats…</div></div>
+    </div>`;
+  fs.classList.add('open'); fs.scrollTop = 0; document.body.style.overflow = 'hidden';
+  $('#fs-x').onclick = closeFull;
+  wireEval(id, '#fev-side', '#fev-odds', '#fev-go', '#fev-out');
+  if(!m.has_detail){ $('#fs-more').innerHTML = '<div class="mt">No model detail for this match</div>'; return; }
+  try{
+    const d = await getDetail(id); if(!fs.classList.contains('open')) return;
+    const h2h = d.h2h||[], h2hW = h2h.filter(r => (r.Winner||'').toLowerCase()===m.home.toLowerCase()).length;
+    $('#fs-more').outerHTML = `
+      <div class="fs-card"><div class="fs-h">What moves the model price</div>${drvBars(d.drivers, m.home, m.away)}</div>
+      <div class="fs-card"><div class="fs-h">Tale of the tape</div>${tapeTbl(d.tape, m.home, m.away, false)}</div>
+      <div class="fs-card wide"><div class="fs-h">Form · last 20</div><div class="fs-two">
+        ${[[m.home,d.recent_home,'var(--brass)'],[m.away,d.recent_away,'var(--navy-ink)']].map(([n,r,col]) => `<div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px">${esc(n)}</div>${wlStrip(r)}${formSummary(r)}
+          <div class="mt" style="font-weight:600;color:var(--text)">Serve points won by match</div>${spark(r,'Serve pts won',col)}
+          <div class="mt" style="font-weight:600;color:var(--text);margin-top:6px">Return points won by match</div>${spark(r,'Return pts won',col)}</div>`).join('')}
+      </div></div>
+      <div class="fs-card wide"><div class="fs-h">Surface splits · last 52 weeks and career</div>${splitsMatrix(d, m)}</div>
+      <div class="fs-card wide"><div class="fs-h">Shot by shot (charting)</div>${chartFull(d, m)}</div>
+      <div class="fs-card"><div class="fs-h">${esc(m.home)} · recent matches</div>${formTbl(d.recent_home, 20, true)}</div>
+      <div class="fs-card"><div class="fs-h">${esc(m.away)} · recent matches</div>${formTbl(d.recent_away, 20, true)}</div>
+      <div class="fs-card wide"><div class="fs-h">Head to head · ${esc(last(m.home))} ${h2hW}–${h2h.length-h2hW} ${esc(last(m.away))}</div>${h2h.length?`<table class="mini"><thead><tr><th>Date</th><th>Event</th><th>Rd</th><th>Surf</th><th>Winner</th><th>Score</th></tr></thead><tbody>${h2h.map(r => `<tr><td>${esc(String(r.Date).slice(0,10))}</td><td>${esc(r.Event)}</td><td>${esc(r.Round)}</td><td>${esc(r.Surface||'')}</td><td><b>${esc(last(r.Winner))}</b></td><td>${esc(r.Score)}</td></tr>`).join('')}</tbody></table>`:'<div class="mt">First meeting</div>'}</div>`;
+  }catch(e){ const x = $('#fs-more'); if(x) x.innerHTML = `<div class="mt">${esc(e.message)}</div>`; }
+}
+function closeFull(){ $('#fs').classList.remove('open'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#fs').classList.contains('open')) closeFull(); });
+
+/* ── Open plays ── */
+function playStatus(p){
+  const st = new Date(p.commence).getTime(), now = Date.now();
+  if(isNaN(st)) return '<span class="st st-up">SCHEDULED</span>';
+  if(now < st){ const hrs = (st-now)/36e5; return `<span class="st st-up">${hrs<1?'IN '+Math.max(1,Math.round(hrs*60))+' MIN':hrs<24?'IN '+(hrs<10?hrs.toFixed(1):Math.round(hrs))+'H':tfmt(p.commence).toUpperCase()}</span>`; }
+  if(now - st < 4*36e5) return '<span class="st st-live">IN PLAY</span>';
+  return '<span class="st st-wait" title="grader runs every morning at 4:10 — or press RUN GRADER">AWAITING GRADE</span>';
+}
+async function loadOpen(render_=true){
+  try{
+    OPEN = await j('/api/open_plays');
+    OPEN_KEYS = new Set((OPEN.plays||[]).map(p => p.entity_id + '|' + p.side));
+  }catch(e){ OPEN = {plays:[], error:e.message}; OPEN_KEYS = new Set(); }
+  const n = (OPEN.plays||[]).length, oc = $('#open-count'); oc.textContent = n; oc.className = 'tcount' + (n ? '' : ' zero');
+  if(render_) renderOpen();
+}
+function renderOpen(){
+  const ps = OPEN.plays||[], data = OPEN.mode==='data';
+  const head = `<div class="res-toolbar"><div><div class="res-title">Open plays</div>
+    <div class="res-sub">${ps.length} waiting on a result · a play lands here the moment it ${data?'clears every gate (data mode: logged as a would-bet)':'qualifies'} and leaves once the grader settles it
+      · last graded ${esc((OPEN.graded_at||'—').replace('T',' ').slice(0,16))} UTC</div></div>
+    <div class="res-right"><button class="btn" id="og-btn">▶ RUN GRADER</button><span class="jobmsg" id="og-msg"></span></div></div>`;
+  if(OPEN.error){ $('#op-content').innerHTML = head + `<div class="empty err">${esc(OPEN.error)}</div>`; }
+  else if(!ps.length){ $('#op-content').innerHTML = head + `<div class="empty">No open plays right now.<br><span class="mt">${data?'Data mode: a side shows here when it clears every gate (5% EV, 7% with one book, under 15%, gap guard).':'A side shows here when it qualifies.'}</span></div>`; }
+  else{
+    const stakeU = p => p.qualifies ? (p.stake!=null ? (100*p.stake).toFixed(2)+'u' : '—') : (p.stake_would!=null ? (100*p.stake_would).toFixed(2)+'u' : '—');
+    $('#op-content').innerHTML = head + `<table class="bt-tbl op-tbl"><thead><tr><th>Status</th><th>Start (ET)</th><th>Play</th><th>Opponent</th><th>Event</th>
+      <th>Price taken</th><th>Book</th><th>Win %</th><th>EV taken</th><th>Kelly stake</th><th>Best now</th><th>EV now</th><th>Type</th></tr></thead><tbody>
+      ${ps.map(p => { const mv = p.now_odds!=null && p.bet_odds!=null ? impl(p.now_odds) - impl(p.bet_odds) : null;
+        return `<tr data-id="${esc(p.entity_id)}" data-on="${p.on_board?1:0}"><td>${playStatus(p)}</td><td class="mono-s">${tfmt(p.commence)}</td>
+        <td class="pl">${esc(p.player)}</td><td>${esc(p.opponent)}</td>
+        <td><span class="pmeta">${esc((p.tour||'').toUpperCase())} · ${esc((p.tournament||'').replace(/^(ATP|WTA)\s+/,''))}${p.round?' · '+esc(p.round):''}</span><span class="sfc sfc-${esc(p.surface)}">${esc(p.surface)}</span></td>
+        <td class="mono-s"><b>${am(p.bet_odds)}</b></td><td>${esc(p.book_title||bk(p.book))}</td><td class="mono-s">${pct(p.p_bet)}</td>
+        <td class="ppos">${p.ev_pct==null?'—':sgn(p.ev_pct,1)+'%'}</td><td class="mono-s">${stakeU(p)}</td>
+        <td class="mono-s">${p.now_odds==null?'—':`<b>${am(p.now_odds)}</b> <span class="dimtxt">${esc(p.now_book_title||bk(p.now_book))}</span>`}${mv!=null&&Math.abs(mv)>0.002?` <span class="${mv>0?'ppos':'pneg'}" title="${mv>0?'price shortened since we took it (good)':'price drifted since we took it'}">${mv>0?'▲':'▼'}</span>`:''}</td>
+        <td class="${p.now_ev_pct>0?'ppos':'pdim'}">${p.now_ev_pct==null?'—':sgn(p.now_ev_pct,1)+'%'}</td>
+        <td>${p.qualifies?'<span class="tag tag-brass">BET</span>':'<span class="dimtxt">would-bet</span>'}</td></tr>`; }).join('')}</tbody></table>
+      <div class="note" style="margin-top:12px">Flat record is 1u a play; Kelly stake is in units of 1% bankroll. <b>Best now</b> is this morning's board — ▲ means the price has shortened since we took it (beating the close). Click a row to open the match on the board.</div>`;
+    document.querySelectorAll('.op-tbl tbody tr').forEach(tr => tr.onclick = () => { if(tr.dataset.on!=='1') return; gotoTab('projections'); openMatch(tr.dataset.id); });
+  }
+  $('#og-btn').onclick = () => runJob('/api/grade', '#og-msg', () => loadOpen());
+}
+
+/* ── Results ── */
+function card(label, val, sub, cls){ return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-val ${cls||''}">${val}</div>${sub?`<div class="stat-sub">${sub}</div>`:''}</div>`; }
+function early(n, need){ return n < need ? `<span class="early">too early: n=${n} (needs ~${need})</span>` : `<span class="ready">n=${n}</span>`; }
+function chart(days){
+  if(!days || days.length < 2) return '<div class="mt" style="padding:10px 0">The running total starts after two graded days.</div>';
+  const W=900,H=220,P=34, xs=days.map((_,i)=>i), ys=days.flatMap(d=>[d.cum_units,d.cum_units_kelly]), mn=Math.min(0,...ys), mx=Math.max(0,...ys)||1;
+  const X=i=>P+(W-2*P)*i/Math.max(1,days.length-1), Y=v=>H-P-(H-2*P)*(v-mn)/((mx-mn)||1);
+  const line=(k,col)=>`<polyline fill="none" stroke="${col}" stroke-width="2.4" points="${days.map((d,i)=>X(i)+','+Y(d[k])).join(' ')}"/>`;
+  return `<div class="pnl-chart"><svg viewBox="0 0 ${W} ${H}"><line x1="${P}" x2="${W-P}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border2)" stroke-dasharray="4 4"/>
+    ${line('cum_units','var(--brass)')}${line('cum_units_kelly','var(--navy-ink)')}
+    <text x="${P}" y="${H-8}" font-size="12" fill="var(--dim)">${esc(days[0].period)}</text><text x="${W-P}" y="${H-8}" font-size="12" fill="var(--dim)" text-anchor="end">${esc(days[days.length-1].period)}</text></svg>
+    <div class="pnl-legend"><span><i style="background:var(--brass)"></i>Flat units (1u a play)</span><span><i style="background:var(--navy-ink)"></i>Kelly units (1u = 1% bankroll)</span></div></div>`;
+}
+function splitTbl(rows, key, label){
+  if(!rows || !rows.length) return '';
+  return `<div><div class="section-hdr" style="font-size:16px;margin-top:10px">By ${label}</div><table class="bt-tbl"><thead><tr><th>${label}</th><th>N</th><th>W–L</th><th>Units</th><th>Kelly u</th><th>ROI</th><th>CLV</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r[key])}</td><td>${r.n}</td><td>${r.wins}–${r.losses}</td><td class="${r.units_flat>0?'ppos':'pneg'}">${sgn(r.units_flat)}</td><td class="${r.units_kelly>0?'ppos':r.units_kelly<0?'pneg':''}">${sgn(r.units_kelly)}</td><td>${r.roi_flat==null?'—':r.roi_flat+'%'}</td><td>${r.clv_pct==null?'—':sgn(r.clv_pct,2)+'%'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function block(b, title, note){
+  const s = (b && b.summary) || {n:0};
+  if(!s.n) return `<div class="block-hdr">${title}</div><div class="note">${note}</div><div class="mt">Nothing graded yet.</div>`;
+  const by = b.by || {};
+  return `<div class="block-hdr">${title}</div><div class="note">${note}</div>
+    <div class="stat-grid">
+      ${card('Units (flat)', sgn(s.units_flat), `${s.wins}–${s.losses}${s.pushes?'–'+s.pushes:''} · ROI ${s.roi_flat}%`, s.units_flat>0?'pos':'neg')}
+      ${card('Kelly units', sgn(s.units_kelly), s.roi_kelly==null?'no stakes':'ROI '+s.roi_kelly+'% on '+(+s.staked_kelly).toFixed(1)+'u staked', s.units_kelly>0?'pos':s.units_kelly<0?'neg':'')}
+      ${card('CLV vs close', s.clv_pct==null?'—':sgn(s.clv_pct,2)+'%', s.clv_n?`beat close ${pct(s.beat_close,0)} · ${early(s.clv_n,100)}`:'needs the weekly tennis-data file', s.clv_pct>0?'pos':s.clv_pct<0?'neg':'')}
+      ${card('Realized / EV', s.realized_over_ev==null?'—':(+s.realized_over_ev).toFixed(2), `expected ${sgn(s.exp_units)}u · ${early(s.n,300)}`)}
+      ${card('Win rate', pct(s.win_rate), `90% ${pct(s.wr_lo,0)}–${pct(s.wr_hi,0)} · mean P ${pct(s.mean_model_prob)}`)}
+      ${card('Brier', s.brier==null?'—':s.brier.toFixed(4), s.brier_market==null?'':`market ${s.brier_market.toFixed(4)} · skill ${sgn(s.brier_skill,4)}`, s.brier_skill>0?'pos':s.brier_skill<0?'neg':'')}
+    </div>${chart(b.by_day)}
+    <div class="two-col">${splitTbl(by.tour,'tour','Tour')}${splitTbl(by.ev_bucket,'ev_bucket','EV bucket')}${splitTbl(by.fav_dog,'fav_dog','Favourite / underdog')}${splitTbl(by.surface,'surface','Surface')}${splitTbl(by.book,'book','Book')}</div>
+    ${b.promotion?`<div class="note"><b>Promotion check (probation → established):</b> ${b.promotion.promote?'<span class="ready">promote</span>':'not yet'} — ${esc((b.promotion.reasons||[]).join('; '))}</div>`:''}`;
+}
+async function loadResults(){
+  try{
+    const r = await j('/api/results');
+    if(!r.n_logged){ $('#bt-content').innerHTML = '<div class="empty">Nothing logged yet — the first morning board starts the record.</div>'; return; }
+    const data = r.mode==='data';
+    const rec = (r.recent||[]).slice(0,120);
+    $('#bt-content').innerHTML = `<div class="res-toolbar"><div><div class="res-title">Results</div>
+      <div class="res-sub">${r.n_logged} rows logged · ${r.n_graded} settled · ${r.n_with_close} with a closing price · graded ${esc((r.generated_at||'').replace('T',' ').slice(0,16))} UTC · retirements: ${esc(r.retired_rule)}</div></div>
+      <div class="res-right"><button class="btn" id="grade-btn">▶ RUN GRADER</button><span class="jobmsg" id="grade-msg"></span></div></div>
+      <div class="note">Betting results only: plays that qualified, settled at the price taken. How the model itself is doing — every match, bet or not — is on the <a href="#" id="to-model"><b>Model</b></a> tab.</div>
+      ${data?`<div class="note"><b>Data mode.</b> Nothing is placed yet (kit D31), so the record that counts is <b>Would-have-bet</b>: every side that cleared every gate — 5% EV (7% single book), under 15%, gap guard, one side per match — at the stake it would have had. Switch <code>staking.mode</code> to <code>live</code> in tn_config.json when its CLV is positive with enough plays.</div>`:''}
+      ${data?block(r.would_bet,'Would-have-bet · data mode','Plays that cleared every gate; nothing was placed.')+block(r.bets,'Bets placed','Live-mode plays. None while in data mode.')
+            :block(r.bets,'Bets','Qualifying plays, one row per bet, at the first-seen price.')+block(r.would_bet,'Would-have-bet','Plays from data-mode days, before going live.')}
+      <div class="section-hdr">Graded plays</div>${rec.length?'':'<div class="mt" style="padding:6px 0 10px">No play has qualified yet, so nothing has been graded as a bet.</div>'}
+      <table class="bt-tbl"><thead><tr><th>Date</th><th>Match</th><th>Side</th><th>Price</th><th>Book</th><th>EV</th><th>Result</th><th>Units</th><th>CLV</th></tr></thead><tbody>
+      ${rec.map(x => `<tr><td>${esc(x.period)}</td><td>${esc(x.entity)}</td><td>${esc(x.player)}</td><td>${am(x.bet_odds)}</td><td>${esc(x.book)}</td><td>${x.ev_pct==null?'—':(+x.ev_pct).toFixed(1)+'%'}</td>
+        <td class="${x.result==='win'?'ppos':x.result==='loss'?'pneg':'pdim'}">${esc(x.result)}${x.score?' <span class="pdim">'+esc(x.score)+'</span>':''}</td><td class="${x.units>0?'ppos':x.units<0?'pneg':''}">${x.units==null?'—':sgn(x.units)}</td><td>${x.clv==null?'—':sgn(100*x.clv,1)+'%'}</td></tr>`).join('')}</tbody></table>`;
+    $('#grade-btn').onclick = () => runJob('/api/grade', '#grade-msg', () => { loadResults(); loadOpen(false); });
+    $('#to-model').onclick = e => { e.preventDefault(); gotoTab('model'); };
+  }catch(e){ $('#bt-content').innerHTML = `<div class="empty err">${esc(e.message)}</div>`; }
+}
+
+/* ── Model tab (not bets) ── */
+async function loadModel(){
+  try{
+    const r = await j('/api/model');
+    if(!r.n_matches){ $('#md-content').innerHTML = '<div class="empty">No graded matches yet — the grader settles yesterday\'s matches every morning.</div>'; return; }
+    const S = r.score||{}, B = S.blend||{}, K = S.market||{}, M = S.model||{}, L = r.lean||{};
+    const sk = (a, b) => a==null||b==null||!b ? null : 1 - a/b;
+    const skill = sk(B.brier, K.brier), mskill = sk(M.brier, K.brier);
+    const rec = x => x && x.n ? `${x.wins}–${x.losses}` : '—';
+    const w = r.w_model||{};
+    const recTbl = (rows, key, label) => !rows || !rows.length ? '' : `<div><div class="section-hdr" style="font-size:16px;margin-top:10px">Model lean by ${label}</div><table class="bt-tbl"><thead><tr><th>${label}</th><th>N</th><th>W–L</th><th>Units</th><th>ROI</th></tr></thead><tbody>
+      ${rows.filter(x => x.n).map(x => `<tr><td>${esc(x[key])}</td><td>${x.n}</td><td>${x.wins}–${x.losses}</td><td class="${x.units>0?'ppos':'pneg'}">${sgn(x.units)}</td><td>${x.roi==null?'—':x.roi+'%'}</td></tr>`).join('')}</tbody></table></div>`;
+    const ms = r.matches||[];
+    $('#md-content').innerHTML = `<div class="res-toolbar"><div><div class="res-title">Model</div>
+      <div class="res-sub">${r.n_matches} graded matches · first price the board saw · graded ${esc((r.graded_at||'').replace('T',' ').slice(0,16))} UTC</div></div></div>
+      <div class="note"><b>Not betting results.</b> This scores the model on every graded match, bet or not, to answer one question: is our Win % sharper than the market's? Betting results are on the <a href="#" id="to-res"><b>Results</b></a> tab.</div>
+      <div class="block-hdr">Accuracy · lower Brier is better</div>
+      <div class="note">One row per match. <b>Win %</b> is the number on the board (the model blended with the market: ATP ${Math.round(100*(w.atp??0))}% / WTA ${Math.round(100*(w.wta??0))}% model). <b>Raw model</b> is the model alone. Skill above 0 means it beats the de-vigged market. ${early(r.n_matches,300)}</div>
+      <div class="stat-grid">
+        ${card('Win % (board) Brier', B.brier==null?'—':B.brier.toFixed(4), `log loss ${B.log_loss??'—'} · favourite won ${pct(B.fav_right,0)}`)}
+        ${card('Market Brier', K.brier==null?'—':K.brier.toFixed(4), `log loss ${K.log_loss??'—'} · favourite won ${pct(K.fav_right,0)}`)}
+        ${card('Raw model Brier', M.brier==null?'—':M.brier.toFixed(4), `log loss ${M.log_loss??'—'} · favourite won ${pct(M.fav_right,0)}`)}
+        ${card('Skill vs market', skill==null?'—':sgn(100*skill,1)+'%', 'Win % (board) against the market', skill>0?'pos':skill<0?'neg':'')}
+        ${card('Raw model skill', mskill==null?'—':sgn(100*mskill,1)+'%', 'model alone against the market', mskill>0?'pos':mskill<0?'neg':'')}
+        ${card('Model–market gap', r.mean_gap==null?'—':(100*r.mean_gap).toFixed(1)+' pts', 'average disagreement, raw model vs market')}
+      </div>
+      <div class="block-hdr">Model lean · hypothetical, not bets</div>
+      <div class="note">On each match, the player the raw model rates higher than the market does, at the best price on the board when it was first seen, 1u flat. No EV gate, so it is a test of direction, not a staking plan.</div>
+      <div class="stat-grid">
+        ${card('Lean record', rec(L), L.n?`${L.n} matches`:'', '')}
+        ${card('Lean units', sgn(L.units), L.roi==null?'':'ROI '+L.roi+'%', L.units>0?'pos':L.units<0?'neg':'')}
+      </div>
+      <div class="two-col">${recTbl(r.lean_by?.tour,'tour','tour')}${recTbl(r.lean_by?.fav_dog,'fav_dog','favourite / underdog')}${recTbl(r.lean_by?.surface,'surface','surface')}</div>
+      <div class="block-hdr">Calibration</div>
+      <div class="note">Every player's Win %, bucketed: when we said 60–70%, how often did they win? Close to the diagonal is good; buckets under ~30 are noise.</div>
+      <table class="bt-tbl" style="max-width:720px"><thead><tr><th>Win % said</th><th>N</th><th>Average said</th><th>Actually won</th><th style="width:40%"></th></tr></thead><tbody>
+        ${(r.calibration||[]).map(c => `<tr><td>${esc(c.bucket)}</td><td>${c.n}</td><td>${pct(c.pred)}</td><td class="${Math.abs(c.actual-c.pred)<.08?'ppos':'pneg'}">${pct(c.actual)}</td>
+          <td><div class="cbar" style="height:8px"><i style="left:${100*c.pred}%;background:var(--dim)" title="said"></i><i style="left:${100*c.actual}%;background:var(--brass)" title="won"></i></div></td></tr>`).join('')}</tbody></table>
+      <div class="mt" style="margin-top:4px">Grey tick = Win % said, brass tick = how often they won.</div>
+      <div class="block-hdr">Blend weight</div>
+      <div class="note">How much of the board's Win % comes from the model: ATP ${w.atp??'—'} (${esc(r.anchor_source?.atp||'')}), WTA ${w.wta??'—'} (${esc(r.anchor_source?.wta||'')}). The grader refits it from these matches once there are 300 per tour — latest: ATP ${esc(r.anchor_refit?.atp||'—')}, WTA ${esc(r.anchor_refit?.wta||'—')}.</div>
+      <div class="section-hdr">Graded matches</div>
+      <table class="bt-tbl"><thead><tr><th>Date</th><th>Match</th><th>Winner</th><th>Score</th><th title="first-named player">Win %</th><th>Market</th><th>Raw model</th><th>Model lean</th><th>Price</th><th>Lean result</th></tr></thead><tbody>
+      ${ms.map(m => `<tr><td>${esc(m.period)}</td><td>${esc(m.home)} <span class="dimtxt">v</span> ${esc(m.away)}</td><td><b>${esc(last(m.winner))}</b></td><td class="pdim">${esc(m.score)}</td>
+        <td>${esc(last(m.home))} ${pc0(m.p_bet_home)}</td><td>${pc0(m.p_market_home)}</td><td>${pc0(m.p_model_home)}</td>
+        <td>${esc(m.lean_player||'—')}</td><td>${am(m.lean_odds)} <span class="dimtxt">${esc(bk(m.lean_book))}</span></td>
+        <td class="${m.lean_won?'ppos':m.lean_won===false?'pneg':'pdim'}">${m.lean_won==null?'—':(m.lean_won?'won ':'lost ')+sgn(m.lean_units)}</td></tr>`).join('')}</tbody></table>`;
+    $('#to-res').onclick = e => { e.preventDefault(); gotoTab('results'); };
+  }catch(e){ $('#md-content').innerHTML = `<div class="empty err">${esc(e.message)}</div>`; }
+}
+
+async function runJob(url, msgSel, after, body){
+  const r = await j(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body||{})});
+  if(!r.started){ $(msgSel).textContent = 'another job is running'; return; }
+  $(msgSel).textContent = 'running…';
+  const t = setInterval(async () => { const s = await j('/api/job'); if(!s.running){ clearInterval(t); $(msgSel).textContent = (s.rc===0?'done · ':'failed · ') + (s.tail||'').split('\n').pop(); after && after(); } }, 4000);
+}
+
+async function load(){
+  try{
+    CFG = Object.assign(CFG, await j('/api/config'));
+    BOARD = await j('/api/board');
+    await loadOpen(document.querySelector('#page-open').classList.contains('active'));
+    const meta = BOARD.meta || {};
+    const days = [...new Set((BOARD.matches||[]).map(m => m.period))].sort();
+    const sel = $('#day-sel'), cur = sel.value; sel.innerHTML = '<option value="">ALL</option>' + days.map(d => `<option ${d===cur?'selected':''}>${d}</option>`).join('');
+    $('#meta-pill').textContent = `${(BOARD.matches||[]).length} MATCHES`; $('#meta-pill').className = 'pill loaded';
+    const mp = $('#mode-pill'); mp.style.display = ''; mp.textContent = (CFG.mode||'').toUpperCase() + ' MODE'; mp.className = 'pill ' + (CFG.mode==='live'?'live':'stale');
+    const age = BOARD.generated_at ? (Date.now() - new Date(BOARD.generated_at)) / 36e5 : 99;
+    const sp = $('#status-pill'); sp.textContent = BOARD.generated_at ? (age < 26 ? 'BOARD ' + tfmt(BOARD.generated_at) : 'STALE') : 'NO BOARD'; sp.className = 'pill ' + (age < 26 ? 'live' : 'stale');
+    $('#foot-m').textContent = meta.credit_line ? meta.credit_line : '';
+    $('#pull-btn').title = `Pulls every active tournament's prices: about ${CFG.pull_cost_estimate} Odds API credit(s)`;
+    for(const k in DETAIL) delete DETAIL[k];
+    render();
+    if(SEL && BOARD.matches.find(m => m.event_id===SEL)) openMatch(SEL);
+  }catch(e){ $('#tbl-wrap').innerHTML = `<div class="empty err">${esc(e.message)}</div>`; $('#status-pill').textContent = 'OFFLINE'; $('#status-pill').className = 'pill off'; }
+}
+
+function gotoTab(page){
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id==='page-'+page));
+  if(page==='results') loadResults();
+  if(page==='open') loadOpen();
+  if(page==='model') loadModel();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => gotoTab(t.dataset.page));
+document.querySelectorAll('#tour-chips .chip').forEach(c => c.onclick = () => { document.querySelectorAll('#tour-chips .chip').forEach(x => x.classList.toggle('active', x===c)); ST.tour = c.dataset.tour; render(); });
+document.querySelectorAll('#sort-chips .chip').forEach(c => c.onclick = () => { document.querySelectorAll('#sort-chips .chip').forEach(x => x.classList.toggle('active', x===c)); ST.sort = c.dataset.sort; render(); });
+$('#ev-only-btn').onclick = e => { ST.evOnly = !ST.evOnly; e.target.classList.toggle('active', ST.evOnly); render(); };
+$('#priced-only-btn').onclick = e => { ST.pricedOnly = !ST.pricedOnly; e.target.classList.toggle('active', ST.pricedOnly); render(); };
+$('#day-sel').onchange = e => { ST.day = e.target.value; render(); };
+$('#search-inp').oninput = e => { ST.q = e.target.value.trim().toLowerCase(); render(); };
+$('#refresh-btn').onclick = load;
+$('#pull-btn').onclick = () => { if(confirm(`Pull fresh prices for every active tournament now? About ${CFG.pull_cost_estimate} Odds API credit(s). The morning job already does this once a day.`)) runJob('/api/pull', '#pull-msg', load); };
+$('#theme-btn').onclick = () => { const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const nx = cur==='dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx); try{ localStorage.setItem('wk-theme', nx); }catch(e){}
+  if($('#fs').classList.contains('open')){ $('#fs').style.background = bgOf(document.body); const t = document.querySelector('.fs-top'); if(t) t.style.background = bgOf(document.body); } };
+setInterval(() => { $('#clock').textContent = new Intl.DateTimeFormat('en-US',{timeZone:CFG.tz,hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date()) + ' ET'; }, 1000);
+load(); setInterval(load, 5*60*1000);
+</script>
+
+<a id="wk-snap-pill" href="../" title="Public snapshot: read-only copy of the Pi dashboard">
+  <span class="wk-snap-dot"></span><span>&#8592; Dashboards</span><span class="wk-snap-age" id="wk-snap-age">snapshot</span>
+</a>
+<style>
+#wk-snap-pill{position:fixed;left:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;background:var(--hdr-bg,#14233A);color:var(--hdr-text,#F4EFE4);
+  border:1px solid var(--brass-hi,#D4AF67);font:600 12px/1 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#wk-snap-pill:hover{background:var(--navy-ink,#1d3150)}
+#wk-snap-pill .wk-snap-age{font:500 11px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--hdr-dim,#B8C1CF)}
+#wk-snap-pill .wk-snap-dot{width:7px;height:7px;border-radius:50%;background:#D4AF67}
+@media print{#wk-snap-pill{display:none}}
+#pull-btn, #grade-btn, #ev-go{display:none!important}
+</style>
+<script>
+(function(){var el=document.getElementById('wk-snap-age');if(!el||!window.__WK_SNAP)return;
+fetch(window.__WK_SNAP.root+'status.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(s){
+var t=s&&s.published_at?new Date(s.published_at):null;if(!t)return;var m=Math.round((Date.now()-t)/60000);
+el.textContent='snapshot '+(m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago');
+el.title='published '+t.toLocaleString();}).catch(function(){});})();
+</script>
+</body>
+</html>
