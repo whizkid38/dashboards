@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<script>
+/* wk-snap.js — injected into every board page by wk_site.py (do not load it directly).
+   The page's own code is untouched: its fetch(API + "/api/…") calls are answered from snap/ files saved on the
+   last run. GET → the saved response (same status as the Pi gave); anything that writes → a read-only error;
+   an API call that was not saved → a 404 with a message. Calls to other sites pass straight through. */
+(function () {
+  var S = window.__WK_SNAP = {"v":"cdafae78cb6f","files":{"api/wk/config":["snap/api_wk_config-1ee68d96.json",200,"application/json"],"api/wk/periods":["snap/api_wk_periods-dcd05250.json",200,"application/json"],"api/wk/projections":["snap/api_wk_projections-370aca48.json",200,"application/json"],"api/wk/results":["snap/api_wk_results-29099555.json",200,"application/json"],"api/wk/discord":["snap/api_wk_discord-1f933329.json",200,"application/json"],"api/wk/health":["snap/api_wk_health-d88e28c2.json",200,"application/json"],"api/health":["snap/api_health-083f73b2.json",200,"application/json"],"api/wk/projections?period=2026-11-14":["snap/api_wk_projections_period_2026-11-14-b5982b39.json",200,"application/json"],"api/wk/projections?period=2026-11-13":["snap/api_wk_projections_period_2026-11-13-1d76a8b6.json",200,"application/json"],"api/wk/projections?period=2026-11-12":["snap/api_wk_projections_period_2026-11-12-2afb96bd.json",200,"application/json"],"api/wk/projections?period=2026-11-11":["snap/api_wk_projections_period_2026-11-11-e7bacc2a.json",200,"application/json"],"api/wk/projections?period=2026-11-10":["snap/api_wk_projections_period_2026-11-10-e48cdfae.json",200,"application/json"],"api/wk/projections?period=2026-11-09":["snap/api_wk_projections_period_2026-11-09-fefcc1ff.json",200,"application/json"],"api/wk/player/8478916":["snap/api_wk_player_8478916-4a6c2405.json",200,"application/json"],"api/wk/player/8482445":["snap/api_wk_player_8482445-803a8a26.json",200,"application/json"],"api/wk/player/8480313":["snap/api_wk_player_8480313-300698ac.json",200,"application/json"],"api/wk/player/8484170":["snap/api_wk_player_8484170-191da6a6.json",200,"application/json"],"api/wk/player/8482137":["snap/api_wk_player_8482137-a2631d51.json",200,"application/json"],"api/wk/player/8480280":["snap/api_wk_player_8480280-2b9981be.json",200,"application/json"],"api/wk/player/8478009":["snap/api_wk_player_8478009-91c0a40a.json",200,"application/json"],"api/wk/player/8481519":["snap/api_wk_player_8481519-c933851c.json",200,"application/json"],"api/wk/player/8480193":["snap/api_wk_player_8480193-735e1d86.json",200,"application/json"],"api/wk/player/8475683":["snap/api_wk_player_8475683-db9ac77e.json",200,"application/json"],"api/wk/player/8476412":["snap/api_wk_player_8476412-48aa0050.json",200,"application/json"],"api/wk/player/8478406":["snap/api_wk_player_8478406-df4f3224.json",200,"application/json"],"api/wk/player/8479361":["snap/api_wk_player_8479361-61d76ac6.json",200,"application/json"],"api/wk/player/8474593":["snap/api_wk_player_8474593-fc4fea25.json",200,"application/json"],"api/wk/player/8482661":["snap/api_wk_player_8482661-e48dbca4.json",200,"application/json"],"api/wk/player/8483703":["snap/api_wk_player_8483703-8beb2cac.json",200,"application/json"],"api/wk/player/8476883":["snap/api_wk_player_8476883-1b66a23b.json",200,"application/json"],"api/wk/player/8476341":["snap/api_wk_player_8476341-30a39e17.json",200,"application/json"],"api/wk/player/8476999":["snap/api_wk_player_8476999-b8d8f9c6.json",200,"application/json"],"api/wk/player/8482221":["snap/api_wk_player_8482221-6ee2b1d9.json",200,"application/json"],"api/wk/player/8476945":["snap/api_wk_player_8476945-e85c2c41.json",200,"application/json"],"api/wk/player/8478024":["snap/api_wk_player_8478024-8d0d7b93.json",200,"application/json"],"api/wk/player/8479312":["snap/api_wk_player_8479312-25262cfe.json",200,"application/json"],"api/wk/player/8478872":["snap/api_wk_player_8478872-f010e80a.json",200,"application/json"],"api/wk/player/8479973":["snap/api_wk_player_8479973-03080a04.json",200,"application/json"],"api/wk/player/8475660":["snap/api_wk_player_8475660-36d1f7b0.json",200,"application/json"],"api/wk/player/8479979":["snap/api_wk_player_8479979-0caefde9.json",200,"application/json"],"api/wk/player/8481611":["snap/api_wk_player_8481611-2ba5b350.json",200,"application/json"]},"root":"../","name":"Hawkey Saves","abs":false,"eval":"snap/evaluator.json","noq":["api/wk/player/"],"derive":[],"msg_ro":"Read-only snapshot. Pulls, grading and edits run on the Pi.","msg_missing":"Not in the public snapshot. This view runs live on the Pi."};
+  if (!S || !window.fetch) return;
+  var dir = location.pathname.replace(/[^\/]*$/, '');          // the board's folder, e.g. /whizkid-site/nfl/
+  var real = window.fetch.bind(window);
+
+  function keyOf(u) {
+    var rel;
+    if (u.pathname.indexOf(dir) === 0) rel = u.pathname.slice(dir.length).replace(/^\/+/, '');
+    else if (S.abs && u.pathname.indexOf('/api/') === 0) rel = u.pathname.slice(1);   // pages that call "/api/…"
+    else return null;
+    try { rel = decodeURIComponent(rel); } catch (e) {}
+    if (!/^([A-Za-z0-9_-]+\/)?api\//.test(rel)) return null;                  // api/… or e.g. saves/api/… (hub pages)
+    for (var i = 0; i < (S.noq || []).length; i++) if (rel.indexOf(S.noq[i]) === 0) return rel;   // player cards: path only
+    var ps = [];
+    u.searchParams.forEach(function (v, k) { ps.push([k, v]); });
+    ps.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); });
+    return rel + (ps.length ? '?' + ps.map(function (p) { return p[0] + '=' + p[1]; }).join('&') : '');
+  }
+  function json(obj, status) {
+    return new Response(JSON.stringify(obj), {status: status, headers: {'Content-Type': 'application/json'}});
+  }
+
+  // ── "evaluate a line": the Pi's own probability at each line (snap/evaluator.json), your price priced here ──
+  var EV = null;
+  function dec(o) { return o > 0 ? 1 + o / 100 : 1 + 100 / Math.abs(o); }
+  function implied(o) { return o > 0 ? 100 / (o + 100) : Math.abs(o) / (Math.abs(o) + 100); }
+  function american(p) { if (!(p > 0 && p < 1)) return null; return p >= 0.5 ? Math.round(-100 * p / (1 - p)) : Math.round(100 * (1 - p) / p); }
+  function evaluate(u) {
+    var q = u.searchParams, fail = function (m) { return json({error: m}, 400); };
+    if (q.get('period')) return Promise.resolve(fail('On the public copy, Evaluate a line works on the latest period only.'));
+    var load = EV ? Promise.resolve(EV) : real(dir + S.eval + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (d) { return (EV = d); });
+    return load.then(function (E) {
+      var P = E.players[String(q.get('player'))];
+      if (!P) return fail('No line ladder for this player in the public copy (not on the latest projections).');
+      var ln = Math.round(parseFloat(q.get('line')) * 2) / 2, g = P.g[String(ln)];
+      if (!g) { var ks = Object.keys(P.g).map(Number).sort(function (a, b) { return a - b; });
+        return fail('The public copy prices ' + ks[0] + '–' + ks[ks.length - 1] + (E.kelly === 'cond' ? ' (half lines)' : '') + ' for this player; ' + ln + ' is outside it.'); }
+      var po = g[0], pu = g[1], pp = g[2] || 0, nb = (P.nb || {})[String(ln)];
+      var bar = (E.single && nb === 1) ? E.single : E.bar;
+      var over = parseInt(q.get('over'), 10), under = parseInt(q.get('under'), 10);
+      var sides = [['over', over, po, pu], ['under', under, pu, po]].map(function (x) {
+        var pw = x[2], pl = x[3], o = x[1], s = {side: x[0], p_win: pw, p_lose: pl, fair: american(pw / Math.max(pw + pl, 1e-9)), odds: isNaN(o) ? null : o};
+        if (isNaN(o) || o === 0 || Math.abs(o) < 100) return s;
+        var b = dec(o) - 1, ev = (pw * b - pl) * 100, k;
+        if (E.kelly === 'cond') { var p = pw / Math.max(pw + pl, 1e-12); k = Math.max(0, (p * b - (1 - p)) / b) * E.kf * 100; }
+        else k = Math.max(0, (b * pw - pl) / b * E.kf) * 100;
+        s.ev = ev; s.kelly_pct = Math.min(k, E.cap_pct); s.implied = implied(o);
+        var fl = [];
+        if (E.max_ev != null && ev > E.max_ev) fl.push({block: true, text: 'Over the ' + E.max_ev + '% sanity cap. Edges this big are usually a wrong line, a wrong player or stale news, so the pipeline skips them. Check before betting.'});
+        if (E.kelly === 'cond' && !P.lam_k) fl.push({block: true, text: "No market λ for this player yet. The pipeline won't bet a model-only number."});
+        if (E.sport === 'saves' && P.status && P.status !== 'Confirmed') fl.push({block: false, text: 'Starter is ' + P.status + ", not confirmed. A goalie who doesn't start is usually a void, but check your book's rule."});
+        if (E.sport === 'shots' && P.status && /\b(out|scratch|scratched|ir|ltir|gtd|questionable|doubtful|dtd|unconfirmed)\b/i.test(P.status)) fl.push({block: false, text: 'Lineup status is ' + P.status + ". Make sure he's playing before you bet."});
+        if (E.single && E.bar <= ev && ev < E.single) fl.push({block: false, text: 'Clears ' + E.bar + '%, but when only one book hangs this line the pipeline wants ' + E.single + '%.'});
+        s.flags = fl;
+        return s;
+      });
+      var notes = (P.notes || []).concat(E.notes || []);
+      notes.push('Public copy: model probabilities from the Pi as of ' + new Date(E.built_at).toLocaleString() + (E.kelly === 'cond' ? '; the star-under and model-side rules are only checked on the Pi.' : '.'));
+      return json({line: ln, sides: sides, bar: bar, lam_label: P.lam_label, p_push: pp, notes: notes,
+                   hold_pct: (!isNaN(over) && !isNaN(under)) ? (implied(over) + implied(under) - 1) * 100 : null}, 200);
+    }).catch(function () { return fail('The public copy could not load its line ladder.'); });
+  }
+
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var u;
+    try { u = new URL(url, location.href); } catch (e) { return real(input, init); }
+    if (u.origin !== location.origin) return real(input, init);
+    var k = keyOf(u);
+    if (k === null) return real(input, init);
+    if (method !== 'GET' && method !== 'HEAD')
+      return Promise.resolve(json({error: S.msg_ro, ok: false, started: false, readonly: true}, 403));
+    if (S.eval && k.indexOf('api/wk/evaluate') === 0) return evaluate(u);
+    // derive: one item out of a saved bigger answer, e.g. api/matchup?date=D&id=X  ←  api/matchups?date=D → games[X]
+    for (var di = 0; di < (S.derive || []).length; di++) {
+      var D = S.derive[di];
+      if (k.split('?')[0] !== D.path || S.files[k]) continue;
+      var keep = (D.keep || []).map(function (p) { return [p, u.searchParams.get(p) || '']; }).filter(function (x) { return x[1]; });
+      keep.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      var src = D.from + (keep.length ? '?' + keep.map(function (x) { return x[0] + '=' + x[1]; }).join('&') : '');
+      var sh = S.files[src], id = u.searchParams.get(D.by || 'id');
+      if (!sh) break;
+      return real(dir + sh[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (all) {
+        var coll = (D.pick || '').split('.').filter(Boolean).reduce(function (o, p) { return o ? o[p] : null; }, all);
+        var item = coll && (Array.isArray(coll) ? coll.filter(function (g) { return String(g[D.match || 'id']) === String(id); })[0] : coll[id]);
+        return item ? json(item, 200) : json({error: id + ' is not in the public snapshot for that day.'}, 404);
+      }).catch(function () { return json({error: S.msg_missing}, 404); });
+    }
+    var hit = S.files[k];
+    if (!hit) {
+      (S.misses = S.misses || []).push(k);
+      if (window.console) console.info('[wk-snap] not in the snapshot:', k);
+      return Promise.resolve(json({error: S.msg_missing, readonly: true}, 404));
+    }
+    return real(dir + hit[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) {
+      if (!r.ok) return json({error: 'Snapshot file missing (' + r.status + ')'}, 404);
+      return r.blob().then(function (b) {
+        return new Response(b, {status: hit[1] || 200, headers: {'Content-Type': hit[2] || 'application/json'}});
+      });
+    });
+  };
+})();
+
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Whizkid Automations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="wk/wk.css"/>
+<style id="wk-games-switch">@media (max-width:700px){.switch a{padding:6px 9px}}</style></head>
+<body>
+
+<header>
+  <a class="brand" href="./" id="brand">
+    <svg class="wk-badge" viewBox="0 0 100 100" role="img" aria-label="Whizkid Automations"><polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="#B8914A"/><polygon points="50,11 84,30.5 84,69.5 50,89 16,69.5 16,30.5" fill="none" stroke="#14233A" stroke-opacity=".5" stroke-width="1.8"/><text x="44" y="58" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="46" fill="#14233A">w</text><text x="63" y="76" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="42" fill="#F3ECDD" stroke="#14233A" stroke-width="2.4" paint-order="stroke">k</text></svg>
+    <div style="min-width:0">
+      <div class="logo" id="logo">Whizkid <b>Automations</b></div>
+      <div class="hd" id="hd">Loading · Whizkid Automations</div>
+    </div>
+  </a>
+  <div class="switch" id="switch" style="display:none"></div>
+  <div class="spacer"></div>
+  <div class="pill ov" id="ov-pill" style="display:none"></div>
+  <div class="pill" id="tag-pill" style="display:none"></div>
+  <div class="pill" id="meta-pill">LOADING…</div>
+  <div class="pill" id="status-pill" title="server status">—</div>
+  <button class="hbtn" id="theme-btn" title="Switch light / dark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+</header>
+
+<nav>
+  <div class="tab active" data-page="projections">Projections</div>
+  <div class="tab" data-page="results">Results</div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ PROJECTIONS -->
+<div class="page active" id="page-projections">
+  <div class="controls" id="controls">
+    <span class="cl" id="period-label">FILE</span>
+    <select id="period-select"><option value="">latest</option></select>
+    <div class="sep" id="group-sep"></div>
+    <span class="cl" id="group-label"></span>
+    <div class="chips" id="group-chips"></div>
+    <span class="cl">TEAM</span>
+    <select id="team-sel"><option value="">ALL</option></select>
+    <span class="cl">SEARCH</span>
+    <input type="text" id="search-inp" placeholder="Player name…"/>
+    <div class="sep"></div>
+    <span class="cl">SORT</span>
+    <div class="chips" id="sort-chips"></div>
+    <div class="sep"></div>
+    <div class="chip" id="ev-only-btn">+EV ONLY</div>
+    <div class="chip" id="priced-only-btn">PRICED ONLY</div>
+    <div class="chips" id="toggle-chips"></div>
+    <button class="btn" id="refresh-btn">↻ REFRESH</button>
+    <button class="btn primary" id="pull-btn">PULL ODDS</button>
+    <span class="jobmsg" id="pull-msg"></span>
+    <button class="btn" id="discord-btn" disabled>DISCORD</button>
+    <div class="n-results">SHOWING <span id="n-res">—</span></div>
+  </div>
+
+  <div class="proj-body">
+    <div class="tbl-wrap" id="tbl-wrap"><div class="empty">LOADING PROJECTIONS…</div></div>
+    <div class="detail" id="detail-panel">
+      <button class="hbtn d-close" id="d-close" style="color:var(--bright);border-color:var(--border2)">✕ CLOSE</button>
+      <div class="d-empty" id="d-empty">Select a player to see the projection, every price on the board and the line ladder</div>
+      <div id="d-content" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ RESULTS -->
+<div class="page" id="page-results">
+  <div class="bt-page" id="bt-content"><div class="empty">LOADING RESULTS…</div></div>
+</div>
+
+<!-- DISCORD MODAL -->
+<div class="overlay" id="disc-modal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">DISCORD EXPORT</div><button class="modal-x" id="disc-close">✕</button></div>
+    <div class="modal-body"><div class="disc-out" id="disc-out"></div></div>
+    <div class="modal-foot"><button class="btn" id="disc-close2">CLOSE</button><button class="btn navy" id="copy-btn">COPY</button></div>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<footer>
+  <div id="foot-l"><b>Whizkid Automations</b></div>
+  <div id="foot-m"></div>
+  <div id="clock"></div>
+</footer>
+
+<script src="wk/wk-props.js"></script>
+<link rel="stylesheet" href="./ext/pcard/pcard.css"><script src="./ext/pcard/pcard.js"></script>
+
+<a id="wk-snap-pill" href="../" title="Public snapshot: read-only copy of the Pi dashboard">
+  <span class="wk-snap-dot"></span><span>&#8592; Dashboards</span><span class="wk-snap-age" id="wk-snap-age">snapshot</span>
+</a>
+<style>
+#wk-snap-pill{position:fixed;left:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;background:var(--hdr-bg,#14233A);color:var(--hdr-text,#F4EFE4);
+  border:1px solid var(--brass-hi,#D4AF67);font:600 12px/1 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#wk-snap-pill:hover{background:var(--navy-ink,#1d3150)}
+#wk-snap-pill .wk-snap-age{font:500 11px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--hdr-dim,#B8C1CF)}
+#wk-snap-pill .wk-snap-dot{width:7px;height:7px;border-radius:50%;background:#D4AF67}
+@media print{#wk-snap-pill{display:none}}
+#pull-btn, #pull-msg, #grade-btn, #grade-msg{display:none!important}
+</style>
+<script>
+(function(){var el=document.getElementById('wk-snap-age');if(!el||!window.__WK_SNAP)return;
+fetch(window.__WK_SNAP.root+'status.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(s){
+var t=s&&s.published_at?new Date(s.published_at):null;if(!t)return;var m=Math.round((Date.now()-t)/60000);
+el.textContent='snapshot '+(m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago');
+el.title='published '+t.toLocaleString();}).catch(function(){});})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+{"base":"~/Desktop/Models/AAA/data","hub_version":"1.0.0","level":"AAA","levels":{"AA":"aa","AAA":""},"model_version":"3.3.0","odds_key":true,"order":["AAA","AA"],"pipeline_version":"aaa-3.3.0+kit2","port":5432,"sport_id":11,"staking":{"max_ev":15.0,"min_ev":5.0,"min_ev_single_book":7.0,"mode":"data","stage":"probation"}}

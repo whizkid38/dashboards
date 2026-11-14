@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<script>
+/* wk-snap.js — injected into every board page by wk_site.py (do not load it directly).
+   The page's own code is untouched: its fetch(API + "/api/…") calls are answered from snap/ files saved on the
+   last run. GET → the saved response (same status as the Pi gave); anything that writes → a read-only error;
+   an API call that was not saved → a 404 with a message. Calls to other sites pass straight through. */
+(function () {
+  var S = window.__WK_SNAP = {"v":"39193502a12b","files":{"api/wk/config":["snap/api_wk_config-1ee68d96.json",200,"application/json"],"api/wk/periods":["snap/api_wk_periods-dcd05250.json",200,"application/json"],"api/wk/projections":["snap/api_wk_projections-370aca48.json",200,"application/json"],"api/wk/results":["snap/api_wk_results-29099555.json",200,"application/json"],"api/wk/discord":["snap/api_wk_discord-1f933329.json",200,"application/json"],"api/wk/health":["snap/api_wk_health-d88e28c2.json",200,"application/json"],"api/health":["snap/api_health-083f73b2.json",200,"application/json"],"api/wk/projections?period=2026-11-14":["snap/api_wk_projections_period_2026-11-14-b5982b39.json",200,"application/json"],"api/wk/projections?period=2026-11-13":["snap/api_wk_projections_period_2026-11-13-1d76a8b6.json",200,"application/json"],"api/wk/projections?period=2026-11-12":["snap/api_wk_projections_period_2026-11-12-2afb96bd.json",200,"application/json"],"api/wk/projections?period=2026-11-11":["snap/api_wk_projections_period_2026-11-11-e7bacc2a.json",200,"application/json"],"api/wk/projections?period=2026-11-10":["snap/api_wk_projections_period_2026-11-10-e48cdfae.json",200,"application/json"],"api/wk/projections?period=2026-11-09":["snap/api_wk_projections_period_2026-11-09-fefcc1ff.json",200,"application/json"],"api/wk/player/8483445":["snap/api_wk_player_8483445-919f9014.json",200,"application/json"],"api/wk/player/8481557":["snap/api_wk_player_8481557-2e524027.json",200,"application/json"],"api/wk/player/8480801":["snap/api_wk_player_8480801-93ac3d78.json",200,"application/json"],"api/wk/player/8481559":["snap/api_wk_player_8481559-350c6588.json",200,"application/json"],"api/wk/player/8477934":["snap/api_wk_player_8477934-7efa6c42.json",200,"application/json"],"api/wk/player/8484801":["snap/api_wk_player_8484801-49d10014.json",200,"application/json"],"api/wk/player/8478398":["snap/api_wk_player_8478398-1382a342.json",200,"application/json"],"api/wk/player/8479542":["snap/api_wk_player_8479542-65eea5f8.json",200,"application/json"],"api/wk/player/8481540":["snap/api_wk_player_8481540-44c270b4.json",200,"application/json"],"api/wk/player/8478460":["snap/api_wk_player_8478460-c5ede0fd.json",200,"application/json"],"api/wk/player/8479420":["snap/api_wk_player_8479420-fbc90c24.json",200,"application/json"],"api/wk/player/8479337":["snap/api_wk_player_8479337-e51299fe.json",200,"application/json"],"api/wk/player/8478414":["snap/api_wk_player_8478414-b2225b51.json",200,"application/json"],"api/wk/player/8478402":["snap/api_wk_player_8478402-75ff0b42.json",200,"application/json"],"api/wk/player/8479318":["snap/api_wk_player_8479318-42969e74.json",200,"application/json"],"api/wk/player/8478864":["snap/api_wk_player_8478864-09f780d1.json",200,"application/json"],"api/wk/player/8477960":["snap/api_wk_player_8477960-e1929329.json",200,"application/json"],"api/wk/player/8482155":["snap/api_wk_player_8482155-8a7e8054.json",200,"application/json"],"api/wk/player/8477500":["snap/api_wk_player_8477500-d8eca9d9.json",200,"application/json"],"api/wk/player/8477956":["snap/api_wk_player_8477956-d30d93e7.json",200,"application/json"],"api/wk/player/8485366":["snap/api_wk_player_8485366-e902046e.json",200,"application/json"],"api/wk/player/8484144":["snap/api_wk_player_8484144-c41f7cbe.json",200,"application/json"],"api/wk/player/8479343":["snap/api_wk_player_8479343-59e921a7.json",200,"application/json"],"api/wk/player/8480027":["snap/api_wk_player_8480027-10f90b84.json",200,"application/json"],"api/wk/player/8476453":["snap/api_wk_player_8476453-49d4b718.json",200,"application/json"],"api/wk/player/8478550":["snap/api_wk_player_8478550-a4b27711.json",200,"application/json"],"api/wk/player/8477404":["snap/api_wk_player_8477404-81e01593.json",200,"application/json"],"api/wk/player/8475172":["snap/api_wk_player_8475172-bea0c5be.json",200,"application/json"],"api/wk/player/8478458":["snap/api_wk_player_8478458-9cbfe0d0.json",200,"application/json"],"api/wk/player/8480830":["snap/api_wk_player_8480830-af56e585.json",200,"application/json"],"api/wk/player/8482259":["snap/api_wk_player_8482259-7ad0e85b.json",200,"application/json"],"api/wk/player/8478427":["snap/api_wk_player_8478427-5fb5e02e.json",200,"application/json"],"api/wk/player/8482097":["snap/api_wk_player_8482097-799fea74.json",200,"application/json"],"api/wk/player/8477933":["snap/api_wk_player_8477933-8f1c4ea6.json",200,"application/json"],"api/wk/player/8480803":["snap/api_wk_player_8480803-0760d4fb.json",200,"application/json"],"api/wk/player/8482740":["snap/api_wk_player_8482740-0a2a8cc3.json",200,"application/json"],"api/wk/player/8476483":["snap/api_wk_player_8476483-a88e9731.json",200,"application/json"],"api/wk/player/8483516":["snap/api_wk_player_8483516-878c7927.json",200,"application/json"],"api/wk/player/8484145":["snap/api_wk_player_8484145-972a6e8c.json",200,"application/json"],"api/wk/player/8482745":["snap/api_wk_player_8482745-1dde19a1.json",200,"application/json"],"api/wk/player/8478178":["snap/api_wk_player_8478178-ab3c159c.json",200,"application/json"],"api/wk/player/8480039":["snap/api_wk_player_8480039-45e83e95.json",200,"application/json"],"api/wk/player/8482702":["snap/api_wk_player_8482702-09a9d0c5.json",200,"application/json"],"api/wk/player/8477940":["snap/api_wk_player_8477940-c5676865.json",200,"application/json"],"api/wk/player/8480839":["snap/api_wk_player_8480839-55f91dbb.json",200,"application/json"],"api/wk/player/8482077":["snap/api_wk_player_8482077-4ff30dd5.json",200,"application/json"],"api/wk/player/8478873":["snap/api_wk_player_8478873-9aee5b59.json",200,"application/json"],"api/wk/player/8480797":["snap/api_wk_player_8480797-e2a9083d.json",200,"application/json"],"api/wk/player/8482124":["snap/api_wk_player_8482124-f171a0cf.json",200,"application/json"],"api/wk/player/8477939":["snap/api_wk_player_8477939-b8928860.json",200,"application/json"],"api/wk/player/8482660":["snap/api_wk_player_8482660-fbb6fa57.json",200,"application/json"],"api/wk/player/8478042":["snap/api_wk_player_8478042-c64dee69.json",200,"application/json"],"api/wk/player/8479410":["snap/api_wk_player_8479410-14417c54.json",200,"application/json"],"api/wk/player/8482078":["snap/api_wk_player_8482078-12c97617.json",200,"application/json"],"api/wk/player/8484166":["snap/api_wk_player_8484166-d4884f20.json",200,"application/json"],"api/wk/player/8479345":["snap/api_wk_player_8479345-5aece1ac.json",200,"application/json"],"api/wk/player/8482149":["snap/api_wk_player_8482149-d59380c1.json",200,"application/json"],"api/wk/player/8483515":["snap/api_wk_player_8483515-5191fd73.json",200,"application/json"],"api/wk/player/8480015":["snap/api_wk_player_8480015-1651e270.json",200,"application/json"],"api/wk/player/8481528":["snap/api_wk_player_8481528-bcf4dc06.json",200,"application/json"],"api/wk/player/8484762":["snap/api_wk_player_8484762-db260dce.json",200,"application/json"],"api/wk/player/8482809":["snap/api_wk_player_8482809-5e06798d.json",200,"application/json"],"api/wk/player/8480018":["snap/api_wk_player_8480018-91812de8.json",200,"application/json"],"api/wk/player/8480800":["snap/api_wk_player_8480800-31b8ecf9.json",200,"application/json"],"api/wk/player/8484227":["snap/api_wk_player_8484227-3d0d76ec.json",200,"application/json"],"api/wk/player/8482679":["snap/api_wk_player_8482679-928bfb56.json",200,"application/json"],"api/wk/player/8480865":["snap/api_wk_player_8480865-8b9aa362.json",200,"application/json"],"api/wk/player/8477476":["snap/api_wk_player_8477476-b68c3e23.json",200,"application/json"],"api/wk/player/8482116":["snap/api_wk_player_8482116-75062ec3.json",200,"application/json"],"api/wk/player/8484153":["snap/api_wk_player_8484153-1812fa63.json",200,"application/json"],"api/wk/player/8475786":["snap/api_wk_player_8475786-2fd414df.json",200,"application/json"],"api/wk/player/8475314":["snap/api_wk_player_8475314-8c16842b.json",200,"application/json"],"api/wk/player/8471215":["snap/api_wk_player_8471215-9976b99f.json",200,"application/json"],"api/wk/player/8484186":["snap/api_wk_player_8484186-a126f656.json",200,"application/json"],"api/wk/player/8478407":["snap/api_wk_player_8478407-6b9cb377.json",200,"application/json"],"api/wk/player/8482105":["snap/api_wk_player_8482105-53c6d1e2.json",200,"application/json"],"api/wk/player/8474578":["snap/api_wk_player_8474578-415a6696.json",200,"application/json"],"api/wk/player/8481721":["snap/api_wk_player_8481721-0559a4d1.json",200,"application/json"],"api/wk/player/8476462":["snap/api_wk_player_8476462-772c2557.json",200,"application/json"],"api/wk/player/8482093":["snap/api_wk_player_8482093-a48b9070.json",200,"application/json"],"api/wk/player/8476399":["snap/api_wk_player_8476399-4f0f4b8b.json",200,"application/json"],"api/wk/player/8474590":["snap/api_wk_player_8474590-ff938868.json",200,"application/json"],"api/wk/player/8471675":["snap/api_wk_player_8471675-1baf90b1.json",200,"application/json"],"api/wk/player/8477949":["snap/api_wk_player_8477949-1e9c6fd2.json",200,"application/json"],"api/wk/player/8474150":["snap/api_wk_player_8474150-3a59d69f.json",200,"application/json"],"api/wk/player/8480188":["snap/api_wk_player_8480188-7da9c6ae.json",200,"application/json"],"api/wk/player/8479407":["snap/api_wk_player_8479407-99a9719b.json",200,"application/json"],"api/wk/player/8477942":["snap/api_wk_player_8477942-c7822b90.json",200,"application/json"],"api/wk/player/8477935":["snap/api_wk_player_8477935-730c57e5.json",200,"application/json"],"api/wk/player/8477409":["snap/api_wk_player_8477409-9ba7892a.json",200,"application/json"],"api/wk/player/8482684":["snap/api_wk_player_8482684-44920500.json",200,"application/json"],"api/wk/player/8480208":["snap/api_wk_player_8480208-b7a5a5ff.json",200,"application/json"],"api/wk/player/8482146":["snap/api_wk_player_8482146-48659c75.json",200,"application/json"],"api/wk/player/8484860":["snap/api_wk_player_8484860-c8c95cfb.json",200,"application/json"],"api/wk/player/8477504":["snap/api_wk_player_8477504-16923dda.json",200,"application/json"],"api/wk/player/8479314":["snap/api_wk_player_8479314-fbdbc5b5.json",200,"application/json"],"api/wk/player/8480002":["snap/api_wk_player_8480002-9b40f60f.json",200,"application/json"],"api/wk/player/8483464":["snap/api_wk_player_8483464-de89b845.json",200,"application/json"],"api/wk/player/8482113":["snap/api_wk_player_8482113-ea4a9bb4.json",200,"application/json"],"api/wk/player/8485414":["snap/api_wk_player_8485414-5df09193.json",200,"application/json"],"api/wk/player/8478449":["snap/api_wk_player_8478449-723ef212.json",200,"application/json"],"api/wk/player/8475151":["snap/api_wk_player_8475151-77a809b3.json",200,"application/json"],"api/wk/player/8481581":["snap/api_wk_player_8481581-35da2b84.json",200,"application/json"],"api/wk/player/8482175":["snap/api_wk_player_8482175-559ac605.json",200,"application/json"],"api/wk/player/8484471":["snap/api_wk_player_8484471-89ceb971.json",200,"application/json"],"api/wk/player/8484390":["snap/api_wk_player_8484390-6d12c5c5.json",200,"application/json"],"api/wk/player/8478500":["snap/api_wk_player_8478500-8f76066e.json",200,"application/json"],"api/wk/player/8475745":["snap/api_wk_player_8475745-bf7a17c5.json",200,"application/json"],"api/wk/player/8480145":["snap/api_wk_player_8480145-b70b087f.json",200,"application/json"],"api/wk/player/8481617":["snap/api_wk_player_8481617-e05901ca.json",200,"application/json"],"api/wk/player/8481542":["snap/api_wk_player_8481542-6fa22cc5.json",200,"application/json"],"api/wk/player/8479675":["snap/api_wk_player_8479675-d2a23b7c.json",200,"application/json"],"api/wk/player/8475798":["snap/api_wk_player_8475798-115c54b4.json",200,"application/json"],"api/wk/player/8476460":["snap/api_wk_player_8476460-857890ed.json",200,"application/json"],"api/wk/player/8476454":["snap/api_wk_player_8476454-a1c5aecf.json",200,"application/json"],"api/wk/player/8475166":["snap/api_wk_player_8475166-a37aeb9a.json",200,"application/json"],"api/wk/player/8480336":["snap/api_wk_player_8480336-5cbee1fd.json",200,"application/json"],"api/wk/player/8481598":["snap/api_wk_player_8481598-280529a9.json",200,"application/json"],"api/wk/player/8478401":["snap/api_wk_player_8478401-769a4198.json",200,"application/json"],"api/wk/player/8483493":["snap/api_wk_player_8483493-a4b8e376.json",200,"application/json"],"api/wk/player/8477986":["snap/api_wk_player_8477986-8764594a.json",200,"application/json"],"api/wk/player/8479385":["snap/api_wk_player_8479385-bb657c7f.json",200,"application/json"],"api/wk/player/8477346":["snap/api_wk_player_8477346-ff3b3450.json",200,"application/json"],"api/wk/player/8474586":["snap/api_wk_player_8474586-15dcd358.json",200,"application/json"],"api/wk/player/8484158":["snap/api_wk_player_8484158-03f0b1ef.json",200,"application/json"],"api/wk/player/8482110":["snap/api_wk_player_8482110-d438272a.json",200,"application/json"],"api/wk/player/8477495":["snap/api_wk_player_8477495-d0a5d8af.json",200,"application/json"],"api/wk/player/8478438":["snap/api_wk_player_8478438-ee974f98.json",200,"application/json"],"api/wk/player/8485391":["snap/api_wk_player_8485391-c71de944.json",200,"application/json"],"api/wk/player/8486103":["snap/api_wk_player_8486103-83ba44f5.json",200,"application/json"],"api/wk/player/8477501":["snap/api_wk_player_8477501-369341c5.json",200,"application/json"],"api/wk/player/8482475":["snap/api_wk_player_8482475-6ac9e049.json",200,"application/json"],"api/wk/player/8478420":["snap/api_wk_player_8478420-92498cef.json",200,"application/json"],"api/wk/player/8479671":["snap/api_wk_player_8479671-d3481abb.json",200,"application/json"],"api/wk/player/8481533":["snap/api_wk_player_8481533-a2dd20ad.json",200,"application/json"],"api/wk/player/8471214":["snap/api_wk_player_8471214-4323d8c7.json",200,"application/json"],"api/wk/player/8482159":["snap/api_wk_player_8482159-3f879635.json",200,"application/json"],"api/wk/player/8476906":["snap/api_wk_player_8476906-fadbefa8.json",200,"application/json"],"api/wk/player/8480014":["snap/api_wk_player_8480014-a900a688.json",200,"application/json"],"api/wk/player/8474141":["snap/api_wk_player_8474141-9c22ed1a.json",200,"application/json"],"api/wk/player/8485388":["snap/api_wk_player_8485388-7a1d1691.json",200,"application/json"],"api/wk/player/8482737":["snap/api_wk_player_8482737-ebddfab9.json",200,"application/json"],"api/wk/player/8481596":["snap/api_wk_player_8481596-5201b67f.json",200,"application/json"],"api/wk/player/8483500":["snap/api_wk_player_8483500-661c5801.json",200,"application/json"],"api/wk/player/8482713":["snap/api_wk_player_8482713-e0d57173.json",200,"application/json"],"api/wk/player/8478542":["snap/api_wk_player_8478542-37893d20.json",200,"application/json"],"api/wk/player/8476885":["snap/api_wk_player_8476885-875b7132.json",200,"application/json"],"api/wk/player/8475754":["snap/api_wk_player_8475754-70162d5f.json",200,"application/json"],"api/wk/player/8480426":["snap/api_wk_player_8480426-10b3c373.json",200,"application/json"],"api/wk/player/8476880":["snap/api_wk_player_8476880-7c9f2062.json",200,"application/json"],"api/wk/player/8478440":["snap/api_wk_player_8478440-6b7a4bb3.json",200,"application/json"],"api/wk/player/8481601":["snap/api_wk_player_8481601-4dbc2bb4.json",200,"application/json"],"api/wk/player/8477496":["snap/api_wk_player_8477496-a33384d5.json",200,"application/json"],"api/wk/player/8482476":["snap/api_wk_player_8482476-11edc67f.json",200,"application/json"],"api/wk/player/8484794":["snap/api_wk_player_8484794-2db0ba04.json",200,"application/json"],"api/wk/player/8475726":["snap/api_wk_player_8475726-e043e20a.json",200,"application/json"],"api/wk/player/8482720":["snap/api_wk_player_8482720-127940b1.json",200,"application/json"],"api/wk/player/8475170":["snap/api_wk_player_8475170-3b2b6155.json",200,"application/json"],"api/wk/player/8480849":["snap/api_wk_player_8480849-c00d3dab.json",200,"application/json"],"api/wk/player/8479977":["snap/api_wk_player_8479977-01a8b914.json",200,"application/json"]},"root":"../","name":"Hawkey Shots","abs":false,"eval":"snap/evaluator.json","noq":["api/wk/player/"],"derive":[],"msg_ro":"Read-only snapshot. Pulls, grading and edits run on the Pi.","msg_missing":"Not in the public snapshot. This view runs live on the Pi."};
+  if (!S || !window.fetch) return;
+  var dir = location.pathname.replace(/[^\/]*$/, '');          // the board's folder, e.g. /whizkid-site/nfl/
+  var real = window.fetch.bind(window);
+
+  function keyOf(u) {
+    var rel;
+    if (u.pathname.indexOf(dir) === 0) rel = u.pathname.slice(dir.length).replace(/^\/+/, '');
+    else if (S.abs && u.pathname.indexOf('/api/') === 0) rel = u.pathname.slice(1);   // pages that call "/api/…"
+    else return null;
+    try { rel = decodeURIComponent(rel); } catch (e) {}
+    if (!/^([A-Za-z0-9_-]+\/)?api\//.test(rel)) return null;                  // api/… or e.g. saves/api/… (hub pages)
+    for (var i = 0; i < (S.noq || []).length; i++) if (rel.indexOf(S.noq[i]) === 0) return rel;   // player cards: path only
+    var ps = [];
+    u.searchParams.forEach(function (v, k) { ps.push([k, v]); });
+    ps.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); });
+    return rel + (ps.length ? '?' + ps.map(function (p) { return p[0] + '=' + p[1]; }).join('&') : '');
+  }
+  function json(obj, status) {
+    return new Response(JSON.stringify(obj), {status: status, headers: {'Content-Type': 'application/json'}});
+  }
+
+  // ── "evaluate a line": the Pi's own probability at each line (snap/evaluator.json), your price priced here ──
+  var EV = null;
+  function dec(o) { return o > 0 ? 1 + o / 100 : 1 + 100 / Math.abs(o); }
+  function implied(o) { return o > 0 ? 100 / (o + 100) : Math.abs(o) / (Math.abs(o) + 100); }
+  function american(p) { if (!(p > 0 && p < 1)) return null; return p >= 0.5 ? Math.round(-100 * p / (1 - p)) : Math.round(100 * (1 - p) / p); }
+  function evaluate(u) {
+    var q = u.searchParams, fail = function (m) { return json({error: m}, 400); };
+    if (q.get('period')) return Promise.resolve(fail('On the public copy, Evaluate a line works on the latest period only.'));
+    var load = EV ? Promise.resolve(EV) : real(dir + S.eval + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (d) { return (EV = d); });
+    return load.then(function (E) {
+      var P = E.players[String(q.get('player'))];
+      if (!P) return fail('No line ladder for this player in the public copy (not on the latest projections).');
+      var ln = Math.round(parseFloat(q.get('line')) * 2) / 2, g = P.g[String(ln)];
+      if (!g) { var ks = Object.keys(P.g).map(Number).sort(function (a, b) { return a - b; });
+        return fail('The public copy prices ' + ks[0] + '–' + ks[ks.length - 1] + (E.kelly === 'cond' ? ' (half lines)' : '') + ' for this player; ' + ln + ' is outside it.'); }
+      var po = g[0], pu = g[1], pp = g[2] || 0, nb = (P.nb || {})[String(ln)];
+      var bar = (E.single && nb === 1) ? E.single : E.bar;
+      var over = parseInt(q.get('over'), 10), under = parseInt(q.get('under'), 10);
+      var sides = [['over', over, po, pu], ['under', under, pu, po]].map(function (x) {
+        var pw = x[2], pl = x[3], o = x[1], s = {side: x[0], p_win: pw, p_lose: pl, fair: american(pw / Math.max(pw + pl, 1e-9)), odds: isNaN(o) ? null : o};
+        if (isNaN(o) || o === 0 || Math.abs(o) < 100) return s;
+        var b = dec(o) - 1, ev = (pw * b - pl) * 100, k;
+        if (E.kelly === 'cond') { var p = pw / Math.max(pw + pl, 1e-12); k = Math.max(0, (p * b - (1 - p)) / b) * E.kf * 100; }
+        else k = Math.max(0, (b * pw - pl) / b * E.kf) * 100;
+        s.ev = ev; s.kelly_pct = Math.min(k, E.cap_pct); s.implied = implied(o);
+        var fl = [];
+        if (E.max_ev != null && ev > E.max_ev) fl.push({block: true, text: 'Over the ' + E.max_ev + '% sanity cap. Edges this big are usually a wrong line, a wrong player or stale news, so the pipeline skips them. Check before betting.'});
+        if (E.kelly === 'cond' && !P.lam_k) fl.push({block: true, text: "No market λ for this player yet. The pipeline won't bet a model-only number."});
+        if (E.sport === 'saves' && P.status && P.status !== 'Confirmed') fl.push({block: false, text: 'Starter is ' + P.status + ", not confirmed. A goalie who doesn't start is usually a void, but check your book's rule."});
+        if (E.sport === 'shots' && P.status && /\b(out|scratch|scratched|ir|ltir|gtd|questionable|doubtful|dtd|unconfirmed)\b/i.test(P.status)) fl.push({block: false, text: 'Lineup status is ' + P.status + ". Make sure he's playing before you bet."});
+        if (E.single && E.bar <= ev && ev < E.single) fl.push({block: false, text: 'Clears ' + E.bar + '%, but when only one book hangs this line the pipeline wants ' + E.single + '%.'});
+        s.flags = fl;
+        return s;
+      });
+      var notes = (P.notes || []).concat(E.notes || []);
+      notes.push('Public copy: model probabilities from the Pi as of ' + new Date(E.built_at).toLocaleString() + (E.kelly === 'cond' ? '; the star-under and model-side rules are only checked on the Pi.' : '.'));
+      return json({line: ln, sides: sides, bar: bar, lam_label: P.lam_label, p_push: pp, notes: notes,
+                   hold_pct: (!isNaN(over) && !isNaN(under)) ? (implied(over) + implied(under) - 1) * 100 : null}, 200);
+    }).catch(function () { return fail('The public copy could not load its line ladder.'); });
+  }
+
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var u;
+    try { u = new URL(url, location.href); } catch (e) { return real(input, init); }
+    if (u.origin !== location.origin) return real(input, init);
+    var k = keyOf(u);
+    if (k === null) return real(input, init);
+    if (method !== 'GET' && method !== 'HEAD')
+      return Promise.resolve(json({error: S.msg_ro, ok: false, started: false, readonly: true}, 403));
+    if (S.eval && k.indexOf('api/wk/evaluate') === 0) return evaluate(u);
+    // derive: one item out of a saved bigger answer, e.g. api/matchup?date=D&id=X  ←  api/matchups?date=D → games[X]
+    for (var di = 0; di < (S.derive || []).length; di++) {
+      var D = S.derive[di];
+      if (k.split('?')[0] !== D.path || S.files[k]) continue;
+      var keep = (D.keep || []).map(function (p) { return [p, u.searchParams.get(p) || '']; }).filter(function (x) { return x[1]; });
+      keep.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      var src = D.from + (keep.length ? '?' + keep.map(function (x) { return x[0] + '=' + x[1]; }).join('&') : '');
+      var sh = S.files[src], id = u.searchParams.get(D.by || 'id');
+      if (!sh) break;
+      return real(dir + sh[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (all) {
+        var coll = (D.pick || '').split('.').filter(Boolean).reduce(function (o, p) { return o ? o[p] : null; }, all);
+        var item = coll && (Array.isArray(coll) ? coll.filter(function (g) { return String(g[D.match || 'id']) === String(id); })[0] : coll[id]);
+        return item ? json(item, 200) : json({error: id + ' is not in the public snapshot for that day.'}, 404);
+      }).catch(function () { return json({error: S.msg_missing}, 404); });
+    }
+    var hit = S.files[k];
+    if (!hit) {
+      (S.misses = S.misses || []).push(k);
+      if (window.console) console.info('[wk-snap] not in the snapshot:', k);
+      return Promise.resolve(json({error: S.msg_missing, readonly: true}, 404));
+    }
+    return real(dir + hit[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) {
+      if (!r.ok) return json({error: 'Snapshot file missing (' + r.status + ')'}, 404);
+      return r.blob().then(function (b) {
+        return new Response(b, {status: hit[1] || 200, headers: {'Content-Type': hit[2] || 'application/json'}});
+      });
+    });
+  };
+})();
+
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Whizkid Automations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="wk/wk.css"/>
+<style id="wk-games-switch">@media (max-width:700px){.switch a{padding:6px 9px}}</style></head>
+<body>
+
+<header>
+  <a class="brand" href="./" id="brand">
+    <svg class="wk-badge" viewBox="0 0 100 100" role="img" aria-label="Whizkid Automations"><polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="#B8914A"/><polygon points="50,11 84,30.5 84,69.5 50,89 16,69.5 16,30.5" fill="none" stroke="#14233A" stroke-opacity=".5" stroke-width="1.8"/><text x="44" y="58" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="46" fill="#14233A">w</text><text x="63" y="76" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="42" fill="#F3ECDD" stroke="#14233A" stroke-width="2.4" paint-order="stroke">k</text></svg>
+    <div style="min-width:0">
+      <div class="logo" id="logo">Whizkid <b>Automations</b></div>
+      <div class="hd" id="hd">Loading · Whizkid Automations</div>
+    </div>
+  </a>
+  <div class="switch" id="switch" style="display:none"></div>
+  <div class="spacer"></div>
+  <div class="pill ov" id="ov-pill" style="display:none"></div>
+  <div class="pill" id="tag-pill" style="display:none"></div>
+  <div class="pill" id="meta-pill">LOADING…</div>
+  <div class="pill" id="status-pill" title="server status">—</div>
+  <button class="hbtn" id="theme-btn" title="Switch light / dark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+</header>
+
+<nav>
+  <div class="tab active" data-page="projections">Projections</div>
+  <div class="tab" data-page="results">Results</div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ PROJECTIONS -->
+<div class="page active" id="page-projections">
+  <div class="controls" id="controls">
+    <span class="cl" id="period-label">FILE</span>
+    <select id="period-select"><option value="">latest</option></select>
+    <div class="sep" id="group-sep"></div>
+    <span class="cl" id="group-label"></span>
+    <div class="chips" id="group-chips"></div>
+    <span class="cl">TEAM</span>
+    <select id="team-sel"><option value="">ALL</option></select>
+    <span class="cl">SEARCH</span>
+    <input type="text" id="search-inp" placeholder="Player name…"/>
+    <div class="sep"></div>
+    <span class="cl">SORT</span>
+    <div class="chips" id="sort-chips"></div>
+    <div class="sep"></div>
+    <div class="chip" id="ev-only-btn">+EV ONLY</div>
+    <div class="chip" id="priced-only-btn">PRICED ONLY</div>
+    <div class="chips" id="toggle-chips"></div>
+    <button class="btn" id="refresh-btn">↻ REFRESH</button>
+    <button class="btn primary" id="pull-btn">PULL ODDS</button>
+    <span class="jobmsg" id="pull-msg"></span>
+    <button class="btn" id="discord-btn" disabled>DISCORD</button>
+    <div class="n-results">SHOWING <span id="n-res">—</span></div>
+  </div>
+
+  <div class="proj-body">
+    <div class="tbl-wrap" id="tbl-wrap"><div class="empty">LOADING PROJECTIONS…</div></div>
+    <div class="detail" id="detail-panel">
+      <button class="hbtn d-close" id="d-close" style="color:var(--bright);border-color:var(--border2)">✕ CLOSE</button>
+      <div class="d-empty" id="d-empty">Select a player to see the projection, every price on the board and the line ladder</div>
+      <div id="d-content" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ RESULTS -->
+<div class="page" id="page-results">
+  <div class="bt-page" id="bt-content"><div class="empty">LOADING RESULTS…</div></div>
+</div>
+
+<!-- DISCORD MODAL -->
+<div class="overlay" id="disc-modal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">DISCORD EXPORT</div><button class="modal-x" id="disc-close">✕</button></div>
+    <div class="modal-body"><div class="disc-out" id="disc-out"></div></div>
+    <div class="modal-foot"><button class="btn" id="disc-close2">CLOSE</button><button class="btn navy" id="copy-btn">COPY</button></div>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<footer>
+  <div id="foot-l"><b>Whizkid Automations</b></div>
+  <div id="foot-m"></div>
+  <div id="clock"></div>
+</footer>
+
+<script src="wk/wk-props.js"></script>
+<link rel="stylesheet" href="pcard/pcard.css?v=1.1.1"><script src="pcard/pcard.js?v=1.1.1"></script>
+
+<a id="wk-snap-pill" href="../" title="Public snapshot: read-only copy of the Pi dashboard">
+  <span class="wk-snap-dot"></span><span>&#8592; Dashboards</span><span class="wk-snap-age" id="wk-snap-age">snapshot</span>
+</a>
+<style>
+#wk-snap-pill{position:fixed;left:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;background:var(--hdr-bg,#14233A);color:var(--hdr-text,#F4EFE4);
+  border:1px solid var(--brass-hi,#D4AF67);font:600 12px/1 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#wk-snap-pill:hover{background:var(--navy-ink,#1d3150)}
+#wk-snap-pill .wk-snap-age{font:500 11px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--hdr-dim,#B8C1CF)}
+#wk-snap-pill .wk-snap-dot{width:7px;height:7px;border-radius:50%;background:#D4AF67}
+@media print{#wk-snap-pill{display:none}}
+#pull-btn, #pull-msg, #grade-btn, #grade-msg{display:none!important}
+</style>
+<script>
+(function(){var el=document.getElementById('wk-snap-age');if(!el||!window.__WK_SNAP)return;
+fetch(window.__WK_SNAP.root+'status.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(s){
+var t=s&&s.published_at?new Date(s.published_at):null;if(!t)return;var m=Math.round((Date.now()-t)/60000);
+el.textContent='snapshot '+(m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago');
+el.title='published '+t.toLocaleString();}).catch(function(){});})();
+</script>
+</body>
+</html>

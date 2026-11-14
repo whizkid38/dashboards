@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<script>
+/* wk-snap.js — injected into every board page by wk_site.py (do not load it directly).
+   The page's own code is untouched: its fetch(API + "/api/…") calls are answered from snap/ files saved on the
+   last run. GET → the saved response (same status as the Pi gave); anything that writes → a read-only error;
+   an API call that was not saved → a 404 with a message. Calls to other sites pass straight through. */
+(function () {
+  var S = window.__WK_SNAP = {"v":"935f0ed90709","files":{"api/perf":["snap/api_perf-d75e408e.json",200,"application/json"],"api/model":["snap/api_model-45a95834.json",200,"application/json"],"api/market":["snap/api_market-a3a46e04.json",200,"text/plain"],"api/health":["snap/api_health-083f73b2.json",200,"application/json"],"api/board?date=2026-11-13":["snap/api_board_date_2026-11-13-240bcf5a.json",200,"application/json"],"api/games?date=2026-11-13":["snap/api_games_date_2026-11-13-b4113d3a.json",200,"application/json"],"api/starters/options?date=2026-11-13":["snap/api_starters_options_date_2026-11-13-f2c61967.json",200,"application/json"],"api/board?date=2026-11-14":["snap/api_board_date_2026-11-14-a4605258.json",200,"application/json"],"api/games?date=2026-11-14":["snap/api_games_date_2026-11-14-e17f4e97.json",200,"application/json"],"api/starters/options?date=2026-11-14":["snap/api_starters_options_date_2026-11-14-18f98d37.json",200,"application/json"],"api/board?date=2026-11-15":["snap/api_board_date_2026-11-15-4835a947.json",200,"application/json"],"api/games?date=2026-11-15":["snap/api_games_date_2026-11-15-e1c8e76a.json",200,"application/json"],"api/starters/options?date=2026-11-15":["snap/api_starters_options_date_2026-11-15-addb80bd.json",200,"application/json"],"api/board?date=2026-11-16":["snap/api_board_date_2026-11-16-235b3533.json",200,"application/json"],"api/games?date=2026-11-16":["snap/api_games_date_2026-11-16-3d7ea9fb.json",200,"application/json"],"api/starters/options?date=2026-11-16":["snap/api_starters_options_date_2026-11-16-c14c9f4a.json",200,"application/json"],"api/board?date=2026-11-17":["snap/api_board_date_2026-11-17-514707f3.json",200,"application/json"],"api/games?date=2026-11-17":["snap/api_games_date_2026-11-17-cf34bd1b.json",200,"application/json"],"api/starters/options?date=2026-11-17":["snap/api_starters_options_date_2026-11-17-a20dd119.json",200,"application/json"]},"root":"../","name":"Omaha Baseball","abs":false,"eval":null,"noq":[],"derive":[],"msg_ro":"Read-only snapshot. Pulls, grading and edits run on the Pi.","msg_missing":"Not in the public snapshot. This view runs live on the Pi."};
+  if (!S || !window.fetch) return;
+  var dir = location.pathname.replace(/[^\/]*$/, '');          // the board's folder, e.g. /whizkid-site/nfl/
+  var real = window.fetch.bind(window);
+
+  function keyOf(u) {
+    var rel;
+    if (u.pathname.indexOf(dir) === 0) rel = u.pathname.slice(dir.length).replace(/^\/+/, '');
+    else if (S.abs && u.pathname.indexOf('/api/') === 0) rel = u.pathname.slice(1);   // pages that call "/api/…"
+    else return null;
+    try { rel = decodeURIComponent(rel); } catch (e) {}
+    if (!/^([A-Za-z0-9_-]+\/)?api\//.test(rel)) return null;                  // api/… or e.g. saves/api/… (hub pages)
+    for (var i = 0; i < (S.noq || []).length; i++) if (rel.indexOf(S.noq[i]) === 0) return rel;   // player cards: path only
+    var ps = [];
+    u.searchParams.forEach(function (v, k) { ps.push([k, v]); });
+    ps.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); });
+    return rel + (ps.length ? '?' + ps.map(function (p) { return p[0] + '=' + p[1]; }).join('&') : '');
+  }
+  function json(obj, status) {
+    return new Response(JSON.stringify(obj), {status: status, headers: {'Content-Type': 'application/json'}});
+  }
+
+  // ── "evaluate a line": the Pi's own probability at each line (snap/evaluator.json), your price priced here ──
+  var EV = null;
+  function dec(o) { return o > 0 ? 1 + o / 100 : 1 + 100 / Math.abs(o); }
+  function implied(o) { return o > 0 ? 100 / (o + 100) : Math.abs(o) / (Math.abs(o) + 100); }
+  function american(p) { if (!(p > 0 && p < 1)) return null; return p >= 0.5 ? Math.round(-100 * p / (1 - p)) : Math.round(100 * (1 - p) / p); }
+  function evaluate(u) {
+    var q = u.searchParams, fail = function (m) { return json({error: m}, 400); };
+    if (q.get('period')) return Promise.resolve(fail('On the public copy, Evaluate a line works on the latest period only.'));
+    var load = EV ? Promise.resolve(EV) : real(dir + S.eval + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (d) { return (EV = d); });
+    return load.then(function (E) {
+      var P = E.players[String(q.get('player'))];
+      if (!P) return fail('No line ladder for this player in the public copy (not on the latest projections).');
+      var ln = Math.round(parseFloat(q.get('line')) * 2) / 2, g = P.g[String(ln)];
+      if (!g) { var ks = Object.keys(P.g).map(Number).sort(function (a, b) { return a - b; });
+        return fail('The public copy prices ' + ks[0] + '–' + ks[ks.length - 1] + (E.kelly === 'cond' ? ' (half lines)' : '') + ' for this player; ' + ln + ' is outside it.'); }
+      var po = g[0], pu = g[1], pp = g[2] || 0, nb = (P.nb || {})[String(ln)];
+      var bar = (E.single && nb === 1) ? E.single : E.bar;
+      var over = parseInt(q.get('over'), 10), under = parseInt(q.get('under'), 10);
+      var sides = [['over', over, po, pu], ['under', under, pu, po]].map(function (x) {
+        var pw = x[2], pl = x[3], o = x[1], s = {side: x[0], p_win: pw, p_lose: pl, fair: american(pw / Math.max(pw + pl, 1e-9)), odds: isNaN(o) ? null : o};
+        if (isNaN(o) || o === 0 || Math.abs(o) < 100) return s;
+        var b = dec(o) - 1, ev = (pw * b - pl) * 100, k;
+        if (E.kelly === 'cond') { var p = pw / Math.max(pw + pl, 1e-12); k = Math.max(0, (p * b - (1 - p)) / b) * E.kf * 100; }
+        else k = Math.max(0, (b * pw - pl) / b * E.kf) * 100;
+        s.ev = ev; s.kelly_pct = Math.min(k, E.cap_pct); s.implied = implied(o);
+        var fl = [];
+        if (E.max_ev != null && ev > E.max_ev) fl.push({block: true, text: 'Over the ' + E.max_ev + '% sanity cap. Edges this big are usually a wrong line, a wrong player or stale news, so the pipeline skips them. Check before betting.'});
+        if (E.kelly === 'cond' && !P.lam_k) fl.push({block: true, text: "No market λ for this player yet. The pipeline won't bet a model-only number."});
+        if (E.sport === 'saves' && P.status && P.status !== 'Confirmed') fl.push({block: false, text: 'Starter is ' + P.status + ", not confirmed. A goalie who doesn't start is usually a void, but check your book's rule."});
+        if (E.sport === 'shots' && P.status && /\b(out|scratch|scratched|ir|ltir|gtd|questionable|doubtful|dtd|unconfirmed)\b/i.test(P.status)) fl.push({block: false, text: 'Lineup status is ' + P.status + ". Make sure he's playing before you bet."});
+        if (E.single && E.bar <= ev && ev < E.single) fl.push({block: false, text: 'Clears ' + E.bar + '%, but when only one book hangs this line the pipeline wants ' + E.single + '%.'});
+        s.flags = fl;
+        return s;
+      });
+      var notes = (P.notes || []).concat(E.notes || []);
+      notes.push('Public copy: model probabilities from the Pi as of ' + new Date(E.built_at).toLocaleString() + (E.kelly === 'cond' ? '; the star-under and model-side rules are only checked on the Pi.' : '.'));
+      return json({line: ln, sides: sides, bar: bar, lam_label: P.lam_label, p_push: pp, notes: notes,
+                   hold_pct: (!isNaN(over) && !isNaN(under)) ? (implied(over) + implied(under) - 1) * 100 : null}, 200);
+    }).catch(function () { return fail('The public copy could not load its line ladder.'); });
+  }
+
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var u;
+    try { u = new URL(url, location.href); } catch (e) { return real(input, init); }
+    if (u.origin !== location.origin) return real(input, init);
+    var k = keyOf(u);
+    if (k === null) return real(input, init);
+    if (method !== 'GET' && method !== 'HEAD')
+      return Promise.resolve(json({error: S.msg_ro, ok: false, started: false, readonly: true}, 403));
+    if (S.eval && k.indexOf('api/wk/evaluate') === 0) return evaluate(u);
+    // derive: one item out of a saved bigger answer, e.g. api/matchup?date=D&id=X  ←  api/matchups?date=D → games[X]
+    for (var di = 0; di < (S.derive || []).length; di++) {
+      var D = S.derive[di];
+      if (k.split('?')[0] !== D.path || S.files[k]) continue;
+      var keep = (D.keep || []).map(function (p) { return [p, u.searchParams.get(p) || '']; }).filter(function (x) { return x[1]; });
+      keep.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      var src = D.from + (keep.length ? '?' + keep.map(function (x) { return x[0] + '=' + x[1]; }).join('&') : '');
+      var sh = S.files[src], id = u.searchParams.get(D.by || 'id');
+      if (!sh) break;
+      return real(dir + sh[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (all) {
+        var coll = (D.pick || '').split('.').filter(Boolean).reduce(function (o, p) { return o ? o[p] : null; }, all);
+        var item = coll && (Array.isArray(coll) ? coll.filter(function (g) { return String(g[D.match || 'id']) === String(id); })[0] : coll[id]);
+        return item ? json(item, 200) : json({error: id + ' is not in the public snapshot for that day.'}, 404);
+      }).catch(function () { return json({error: S.msg_missing}, 404); });
+    }
+    var hit = S.files[k];
+    if (!hit) {
+      (S.misses = S.misses || []).push(k);
+      if (window.console) console.info('[wk-snap] not in the snapshot:', k);
+      return Promise.resolve(json({error: S.msg_missing, readonly: true}, 404));
+    }
+    return real(dir + hit[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) {
+      if (!r.ok) return json({error: 'Snapshot file missing (' + r.status + ')'}, 404);
+      return r.blob().then(function (b) {
+        return new Response(b, {status: hit[1] || 200, headers: {'Content-Type': hit[2] || 'application/json'}});
+      });
+    });
+  };
+})();
+
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>Omaha Baseball · Whizkid Automations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* wk-tokens */
+:root{--bg:#F5F2EA;--surface:#FFFFFF;--panel:#FAF8F3;--card:#FFFFFF;--zebra:#FAF8F2;--hover:#F2EDE1;--border:#E4DED1;--border2:#CDC4B0;--text:#2A3647;--bright:#101C2E;--dim:#5B6676;--accent:#80622A;--brass:#A8843F;--accent-soft:rgba(168,132,63,.15);--navy-ink:#14233A;--on-navy:#F7F2E7;--green:#1C7444;--green-soft:rgba(28,116,68,.10);--green-on:#FFFFFF;--red:#AE3328;--red-soft:rgba(174,51,40,.10);--yellow:#8A5D05;--yellow-soft:rgba(138,93,5,.12);--ev-neg:#6E7785;--violet:#6343A5;--violet-soft:rgba(99,67,165,.10);--violet-on:#FFFFFF;--note-bg:#FBF6EA;--prob-hi:rgba(168,132,63,.26);--prob-mid:rgba(168,132,63,.11);--hdr-bg:#14233A;--hdr-text:#F4EFE4;--hdr-dim:#B8C1CF;--brass-hi:#D4AF67;--track:#E6E1D6;--shadow:0 1px 2px rgba(16,28,46,.06),0 2px 8px rgba(16,28,46,.04);--scrim:rgba(12,21,36,.55);--blue:#2F4A73;--blue-soft:rgba(47,74,115,.12);--orange:#B5651D;--orange-soft:rgba(181,101,29,.12);--display:'Fraunces',Georgia,'Times New Roman',serif;--sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--navy:var(--navy-ink);--navy-2:#1F3354;--brass-ink:var(--accent);--brass-soft:var(--accent-soft);--bone:#F4EFE4;--sunk:var(--panel);--faint:var(--ev-neg);--row-alt:var(--zebra);--row-hover:var(--hover);--row-sel:var(--accent-soft);--bebas:var(--sans);--surface-0:var(--bg);--surface-1:var(--surface);--surface-2:var(--panel);--line:var(--border);--text-primary:var(--bright);--text-secondary:var(--text);--text-muted:var(--dim);--good:var(--green);--warn:var(--yellow);--bad:var(--red);color-scheme:light}
+:root[data-theme="dark"]{--bg:#0C1524;--surface:#121E33;--panel:#16243C;--card:#18273F;--zebra:#14223A;--hover:#1C2D4B;--border:#25385B;--border2:#354B72;--text:#D3DAE5;--bright:#F4EFE4;--dim:#97A5BB;--accent:#D4AF67;--brass:#C9A45C;--accent-soft:rgba(212,175,103,.16);--navy-ink:#D4AF67;--on-navy:#0C1524;--green:#5BC98B;--green-soft:rgba(91,201,139,.14);--green-on:#0C1524;--red:#EF8579;--red-soft:rgba(239,133,121,.14);--yellow:#E6BC55;--yellow-soft:rgba(230,188,85,.14);--ev-neg:#9AA6B8;--violet:#B8A1F2;--violet-soft:rgba(184,161,242,.15);--violet-on:#0C1524;--note-bg:rgba(212,175,103,.07);--prob-hi:rgba(212,175,103,.30);--prob-mid:rgba(212,175,103,.12);--hdr-bg:#0A1220;--hdr-text:#F4EFE4;--hdr-dim:#B8C1CF;--brass-hi:#D4AF67;--track:#2A3852;--shadow:0 1px 2px rgba(0,0,0,.3);--scrim:rgba(4,8,16,.7);--blue:#9DB4D6;--blue-soft:rgba(157,180,214,.14);--orange:#F2A35C;--orange-soft:rgba(242,163,92,.14);--navy-2:#C9A45C;--bone:#F4EFE4;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1524;--surface:#121E33;--panel:#16243C;--card:#18273F;--zebra:#14223A;--hover:#1C2D4B;--border:#25385B;--border2:#354B72;--text:#D3DAE5;--bright:#F4EFE4;--dim:#97A5BB;--accent:#D4AF67;--brass:#C9A45C;--accent-soft:rgba(212,175,103,.16);--navy-ink:#D4AF67;--on-navy:#0C1524;--green:#5BC98B;--green-soft:rgba(91,201,139,.14);--green-on:#0C1524;--red:#EF8579;--red-soft:rgba(239,133,121,.14);--yellow:#E6BC55;--yellow-soft:rgba(230,188,85,.14);--ev-neg:#9AA6B8;--violet:#B8A1F2;--violet-soft:rgba(184,161,242,.15);--violet-on:#0C1524;--note-bg:rgba(212,175,103,.07);--prob-hi:rgba(212,175,103,.30);--prob-mid:rgba(212,175,103,.12);--hdr-bg:#0A1220;--hdr-text:#F4EFE4;--hdr-dim:#B8C1CF;--brass-hi:#D4AF67;--track:#2A3852;--shadow:0 1px 2px rgba(0,0,0,.3);--scrim:rgba(4,8,16,.7);--blue:#9DB4D6;--blue-soft:rgba(157,180,214,.14);--orange:#F2A35C;--orange-soft:rgba(242,163,92,.14);--navy-2:#C9A45C;--bone:#F4EFE4;color-scheme:dark}}
+
+/* Whizkid Automations — "Ledger" theme (navy + brass, paper background), as in Hawkey Shots */
+
+
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.45;display:flex;flex-direction:column;min-height:100vh;
+  -webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"cv11" 1}
+button,select,input{font-family:inherit}
+b,strong{font-weight:600;color:var(--bright)}
+
+/* ── header: Whizkid Automations brand bar (identical to Hawkey Shots / WhizShap) ── */
+header{flex-shrink:0;height:62px;display:flex;align-items:center;gap:12px;padding:0 22px;background:var(--hdr-bg);color:var(--hdr-text);
+  border-bottom:3px solid var(--brass-hi);position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;min-width:0}
+.wk-badge{display:block;flex-shrink:0;width:40px;height:40px}
+.logo{font-family:var(--display);font-weight:600;font-size:25px;letter-spacing:-.01em;color:var(--hdr-text);line-height:1;white-space:nowrap}
+.logo b{font-weight:600;color:var(--brass-hi)}
+.hd{font-size:11px;margin-top:4px;color:var(--hdr-dim);letter-spacing:.06em;text-transform:uppercase;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacer{flex:1}
+header .pill{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;white-space:nowrap;border:1px solid rgba(244,239,228,.22);color:var(--hdr-dim);background:none}
+header .pill.acc{border-color:var(--brass-hi);color:var(--hdr-text);background:rgba(212,175,103,.16)}
+.hlink,.hbtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--hdr-text);background:transparent;
+  border:1px solid rgba(244,239,228,.25);border-radius:7px;padding:6px 10px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.hlink:hover,.hbtn:hover{border-color:var(--brass-hi);color:#fff}
+
+/* ── tabs ── */
+nav{flex-shrink:0;display:flex;gap:4px;padding:0 22px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+nav button{font-size:14.5px;font-weight:600;padding:12px 16px 10px;cursor:pointer;color:var(--dim);background:none;border:0;
+  border-bottom:3px solid transparent;user-select:none;transition:color .12s,border-color .12s;white-space:nowrap}
+nav button:hover{color:var(--bright)}
+nav button.on{color:var(--bright);border-bottom-color:var(--brass)}
+
+/* ── control bar ── */
+.controls{flex-shrink:0;display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;padding:10px 22px;border-bottom:1px solid var(--border);background:var(--sunk)}
+.cl{font-size:12.5px;font-weight:600;color:var(--dim)}
+select,input[type=text]{font-size:13.5px;color:var(--bright);background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;height:34px;outline:none;transition:border-color .12s,box-shadow .12s}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.btn-a,.btn-g{font-size:13.5px;font-weight:600;padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .12s;white-space:nowrap;line-height:1.2}
+.btn-a{border:1px solid var(--border2);color:var(--bright);background:var(--surface)}
+.btn-a:hover{border-color:var(--accent)}
+.btn-g{border:1px solid var(--navy);color:#fff;background:var(--navy)}
+.btn-g:hover{background:var(--navy-2)}
+:root[data-theme="dark"] .btn-g{background:var(--accent);border-color:var(--accent);color:#131D31}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn-g{background:var(--accent);border-color:var(--accent);color:#131D31}}
+.btn-a:disabled,.btn-g:disabled{opacity:.5;cursor:wait}
+#job{font-size:12.5px;color:var(--dim);max-width:320px}
+
+/* ── content ── */
+main{flex:1;padding:18px 22px;width:100%;max-width:1440px;margin:0 auto}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+.tile .k{font-size:12.5px;font-weight:600;color:var(--dim)}
+.tile .v{font-size:28px;font-weight:700;line-height:1.15;color:var(--bright);margin-top:4px}
+.tile .n{font-size:12.5px;color:var(--dim);margin-top:4px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.card h2{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);margin:0;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--sunk)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{padding:10px 10px;text-align:right;font-size:12px;font-weight:600;color:var(--dim);border-bottom:1px solid var(--border2);background:var(--sunk);white-space:nowrap}
+td{padding:9px 10px;text-align:right;white-space:nowrap;vertical-align:middle;border-bottom:1px solid var(--border)}
+td:first-child,th:first-child{text-align:left}
+td:first-child{font-weight:600;color:var(--bright)}
+td.l,th.l{text-align:left}
+tbody tr:nth-child(even){background:var(--row-alt)}
+tbody tr:hover{background:var(--row-hover)}
+tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums}
+.pos{color:var(--green);font-weight:600} .neg{color:var(--red);font-weight:600} .mute{color:var(--dim)} .warn{color:var(--yellow)}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;border:1px solid var(--border2);color:var(--dim);display:inline-block}
+.pill.play{background:var(--green-soft);color:var(--green);border-color:transparent}
+.pill.conf{background:var(--accent-soft);color:var(--text);border-color:transparent}
+.bar{height:6px;background:var(--track);border-radius:3px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--navy)}
+:root[data-theme="dark"] .bar i{background:var(--accent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bar i{background:var(--accent)}}
+details{border-top:1px solid var(--border)}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--dim);padding:9px 14px}
+details summary:hover{color:var(--bright)}
+.drv{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 14px 14px}
+.drv div{font-size:13px;color:var(--text);line-height:1.7}
+.empty{padding:56px 24px;text-align:center;font-size:15px;color:var(--dim);line-height:1.7}
+pre{margin:0;padding:14px;white-space:pre-wrap;font:12.5px/1.6 var(--mono);color:var(--text)}
+.sp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+.sp select{height:30px;padding:3px 7px;font-size:12.5px;max-width:260px}
+.sp input{height:30px;padding:3px 7px;font-size:12.5px;width:140px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--bright)}
+.sp .lock{color:var(--dim);font-size:12px}
+.wi{border-top:1px solid var(--border);padding:12px 14px;background:var(--brass-soft);border-left:3px solid var(--brass)}
+.wi table{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.wi .acts{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.wi .msg{color:var(--dim);font-size:12.5px}
+.wi button{font-size:13.5px;font-weight:600;padding:7px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);color:var(--bright);background:var(--surface)}
+.wi button.primary{border-color:var(--navy);color:#fff;background:var(--navy)}
+:root[data-theme="dark"] .wi button.primary{background:var(--accent);border-color:var(--accent);color:#131D31}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wi button.primary{background:var(--accent);border-color:var(--accent);color:#131D31}}
+footer{flex-shrink:0;padding:6px 22px;border-top:1px solid var(--border);background:var(--surface);display:flex;justify-content:space-between;gap:16px;font-size:12px;color:var(--dim)}
+footer b{color:var(--bright);font-weight:700}
+footer a{color:var(--dim)}
+@media (max-width:900px){header .hd{display:none}}
+@media (max-width:700px){
+  header{height:auto;flex-wrap:wrap;gap:6px 8px;padding:calc(8px + env(safe-area-inset-top)) 12px 9px}
+  header .brand{flex:1 1 0;gap:8px;overflow:hidden}
+  header .wk-badge{width:32px;height:32px}
+  header .logo{font-size:21px}
+  header .spacer{display:none}
+  header .pill{font-size:11.5px;padding:4px 9px}
+  header .brand{flex:1 1 calc(100% - 60px)}
+  #theme-btn{order:2}
+  header .pill{order:3}
+  #hdr-slate{display:none}
+  .tiles{grid-template-columns:1fr 1fr;gap:8px}
+  .tile{padding:11px 12px} .tile .v{font-size:23px}
+  nav{padding:0 6px} nav button{flex:1;padding-left:6px;padding-right:6px;font-size:14px}
+  .controls{padding:10px 12px} main{padding:12px}
+  .drv{grid-template-columns:1fr}
+  footer .chain{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="./" title="Omaha Baseball">
+    <svg class="wk-badge" viewBox="0 0 100 100" role="img" aria-label="Whizkid Automations"><polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="#B8914A"/><polygon points="50,11 84,30.5 84,69.5 50,89 16,69.5 16,30.5" fill="none" stroke="#14233A" stroke-opacity=".5" stroke-width="1.8"/><text x="44" y="58" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="46" fill="#14233A">w</text><text x="63" y="76" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="42" fill="#F3ECDD" stroke="#14233A" stroke-width="2.4" paint-order="stroke">k</text></svg>
+    <div style="min-width:0">
+      <div class="logo">Omaha <b>Baseball</b></div>
+      <div class="hd">NCAA D1 · every game · moneyline · run line · total · Whizkid Automations</div>
+    </div>
+  </a>
+  <div class="spacer"></div>
+  <div class="pill acc" id="ver">model —</div>
+  <div class="pill" id="hdr-slate">slate —</div>
+  <button class="hbtn" id="theme-btn" title="Switch light / dark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+</header>
+<nav id="tabs">
+  <button data-t="board" class="on">EV board</button><button data-t="games">Games</button>
+  <button data-t="perf">Results</button><button data-t="model">Model</button><button data-t="market">Market</button>
+</nav>
+<div class="controls">
+  <span class="cl">Slate</span>
+  <select id="date" aria-label="Slate date"></select>
+  <button id="reprice" class="btn-a" title="Re-project and re-price the stored lines. No Odds API call.">Re-price</button>
+  <button id="pull" class="btn-g" title="Pull odds for every game that has not started. Spends Odds API credits.">Pull odds</button>
+  <span id="job"></span>
+</div>
+<main id="main"><div class="empty">Loading…</div></main>
+<footer><div><b>Omaha Baseball</b> · Whizkid Automations<span class="chain"> · scoreboards + NatStat → ratings → simulator → market → grade</span></div><div id="clock"></div></footer>
+<script>
+const $ = s => document.querySelector(s), main = $("#main");
+let tab = "board", day = new Date().toLocaleDateString("en-CA");
+const api = (p) => fetch("api/" + p).then(r => r.ok ? (p === "market" ? r.text() : r.json()) : Promise.reject(r.status));
+const f = (x, d = 2) => x == null || isNaN(x) ? "—" : Number(x).toFixed(d);
+const pct = (x, d = 1) => x == null || isNaN(x) ? "—" : (100 * x).toFixed(d) + "%";
+const am = x => x == null ? "—" : (x > 0 ? "+" + x : "" + x);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tile = (k, v, n = "") => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`;
+const sgn = (x, d = 1, suf = "") => x == null ? "—" : `<span class="${x > 0 ? "pos" : x < 0 ? "neg" : ""}">${x > 0 ? "+" : ""}${Number(x).toFixed(d)}${suf}</span>`;
+const spTag = s => s.source === "confirmed" ? `<span class="pill conf">confirmed</span>` : s.source === "inferred" ? `<span class="pill">inferred ${Math.round(100 * s.confidence)}%</span>` : `<span class="pill">unknown</span>`;
+const spName = s => { if (!s.pid) return "—"; const [last, ini] = s.pid.split("#")[1].split("|"); return esc(last.replace(/\b\w/g, c => c.toUpperCase()) + (ini ? ", " + ini.toUpperCase() + "." : "")); };
+
+async function board() {
+  const d = await api("board?date=" + day);
+  const rows = d.rows || [], q = rows.filter(r => r.qualifies);
+  const usd = r => r.stake_usd ?? r.stake ?? 0;      // v0.3: stake = bankroll fraction, stake_usd = dollars
+  const stake = q.reduce((a, r) => a + usd(r), 0);
+  let h = `<div class="tiles">${tile("Qualifying plays", q.length, rows.length + " rows priced")}${tile("Staked", "$" + f(stake, 0), q.length ? f(q.reduce((a, r) => a + (r.kelly_pct || 0), 0), 2) + "% of bankroll · staged Kelly, capped" : "staged Kelly, capped")}
+    ${tile("Best EV", q.length ? f(Math.max(...q.map(r => r.ev_pct)), 1) + "%" : "—", "anchored to market")}
+    ${tile("Odds credits", d.telemetry ? d.telemetry.credits : "—", d.telemetry ? (d.telemetry.remaining ?? "?") + " left" : "no pull today")}</div>`;
+  if (!rows.length) return main.innerHTML = h + `<div class="card"><div class="empty">No priced rows for ${day}. Lines are pulled when a game enters its window; use <b>Pull odds</b> to pull now.</div></div>`;
+  const order = [...rows].sort((a, b) => (b.qualifies - a.qualifies) || (b.ev_pct - a.ev_pct));
+  h += `<div class="card"><h2>Board — every posted line, best first</h2><div class="scroll"><table><thead><tr>
+    <th>Game</th><th class="l">Pick</th><th>Price</th><th class="l">Book</th><th>EV</th><th>Bet prob</th><th>Model</th><th>Market</th><th>Books</th><th>Playable to</th><th>Stake</th><th class="l">Status</th></tr></thead><tbody>`;
+  for (const r of order) {
+    const why = r.skip_reason === "shadowed_by_line" && r.shadowed_by_pick ? "shadowed by " + r.shadowed_by_pick
+      : r.skip_reason === "availability" && r.block_reason ? r.block_reason : r.skip_reason;
+    const st = r.qualifies ? `<span class="pill play">PLAY${r.locked ? " · locked" : ""}</span>` : `<span class="pill">${esc((why || (r.shadowed_by_line != null ? "shadowed" : r.already_bet ? "already bet" : r.capped ? "capped" : "below bar")).replace(/_/g, " "))}</span>`;
+    h += `<tr><td>${esc(r.game)}</td><td class="l"><b>${esc(r.pick)}</b></td><td class="num">${am(r.bet_odds)}</td><td class="l mute">${esc(r.book)}</td>
+      <td class="num">${sgn(r.ev_pct, 1, "%")}</td><td class="num">${pct(r.model_prob)}</td><td class="num mute">${pct(r.p_model)}</td><td class="num mute">${pct(r.p_consensus)}</td>
+      <td class="num">${r.n_books}</td><td class="num">${am(r.good_to_price)}</td><td class="num">${r.qualifies ? "$" + f(usd(r), 0) : "—"}</td><td class="l">${st}</td></tr>`;
+  }
+  main.innerHTML = h + `</tbody></table></div></div>`;
+}
+
+let SP = {};                                   // starter options for the slate: {game_id: {locked, home, away}}
+async function games() {
+  const [d, so] = await Promise.all([api("games?date=" + day), api("starters/options?date=" + day).catch(() => ({games: {}}))]);
+  const g = d.games || [];
+  SP = so.games || {};
+  $("#hdr-slate").textContent = `${day} · ${g.length} games`;
+  if (!g.length) return main.innerHTML = `<div class="card"><div class="empty">No projections for ${day}.</div></div>`;
+  const tot = g.reduce((a, r) => a + r.proj_total, 0) / g.length;
+  let h = `<div class="tiles">${tile("Games", g.length)}${tile("Mean projected total", f(tot, 2))}
+    ${tile("Starters confirmed", g.reduce((a, r) => a + (r.starters.home.source === "confirmed") + (r.starters.away.source === "confirmed"), 0), "of " + 2 * g.length)}
+    ${tile("Simulations / game", (g[0].n_sims || 0).toLocaleString())}</div>`;
+  for (const r of [...g].sort((a, b) => (a.start_epoch || 0) - (b.start_epoch || 0))) {
+    const tl = Object.entries(r.totals).sort((a, b) => a[0] - b[0]), rl = r.run_line;
+    h += `<div class="card"><div class="scroll"><table><thead><tr><th>${r.doubleheader ? "DH · " : ""}${r.both_d1 ? "" : "non-D1 · "}Team</th><th>Proj runs</th><th>Win</th><th style="width:120px"></th><th>Fair ML</th><th title="Model-only price (unanchored, playable_basis=model_only); the Board tab's Playable-to is the anchored, bettable one">Playable at*</th><th>−1.5</th><th>+1.5</th><th class="l">Starter</th></tr></thead><tbody>
+      <tr><td>${esc(r.away_name)}</td><td class="num">${f(r.proj_away)}</td><td class="num">${pct(r.p_away)}</td><td><div class="bar"><i style="width:${100 * r.p_away}%"></i></div></td><td class="num">${am(r.fair_away_american)}</td><td class="num mute">${am(r.playable_away_at)}</td><td class="num">${pct(rl["1.5"][1])}</td><td class="num">${pct(rl["-1.5"][1])}</td><td class="l">${spCell(r, "away")}</td></tr>
+      <tr><td>@ <b>${esc(r.home_name)}</b></td><td class="num">${f(r.proj_home)}</td><td class="num">${pct(r.p_home)}</td><td><div class="bar"><i style="width:${100 * r.p_home}%"></i></div></td><td class="num">${am(r.fair_home_american)}</td><td class="num mute">${am(r.playable_home_at)}</td><td class="num">${pct(rl["-1.5"][0])}</td><td class="num">${pct(rl["1.5"][0])}</td><td class="l">${spCell(r, "home")}</td></tr>
+      </tbody></table></div>
+      <div class="wi" id="wi-${esc(r.game_id)}" hidden></div>
+      <details><summary>Total ${f(r.proj_total)} · ladder and key drivers</summary>
+      <div class="scroll"><table><thead><tr><th>Total</th>${tl.map(([l]) => `<th>${l}</th>`).join("")}</tr></thead><tbody>
+      <tr><td>Over</td>${tl.map(([, p]) => `<td class="num">${pct(p[0], 0)}</td>`).join("")}</tr><tr><td>Fair over</td>${tl.map(([, p]) => `<td class="num mute">${am(fairAm(p[0]))}</td>`).join("")}</tr></tbody></table></div>
+      <div class="drv">${["away", "home"].map(s => `<div><b>${esc(r[s + "_name"])}</b> — λ ${f(r["lam_" + s])}<br>${r.drivers[s].map(x => `${esc(x.driver)}: ${sgn(x.runs, 2, " runs")}`).join("<br>")}</div>`).join("")}</div></details></div>`;
+  }
+  main.innerHTML = h;
+}
+function spCell(r, side) {
+  const s = r.starters[side], o = (SP[r.game_id] || {})[side];
+  if (!o) return `${spName(s)} ${spTag(s)}`;                       // options endpoint unavailable: read-only
+  const lock = SP[r.game_id].locked;
+  const model = s.source === "confirmed" ? "Model pick" : `Model pick${s.pid ? ": " + spName(s) : ""}${s.source === "inferred" ? " (" + Math.round(100 * s.confidence) + "%)" : ""}`;
+  const typed = o.typed || "", inList = o.options.some(x => x.value === typed);
+  const opts = [`<option value="">${model}</option>`]
+    .concat(o.options.map(x => `<option value="${esc(x.value)}" ${x.value === typed ? "selected" : ""}>${esc(x.label)} — ${esc(x.note)}</option>`))
+    .concat(typed && !inList ? [`<option value="${esc(typed)}" selected>${esc(typed)} (typed)</option>`] : [])
+    .concat([`<option value="__other">Other… type a name</option>`]);
+  return `<div class="sp"><select data-g="${esc(r.game_id)}" data-side="${side}" data-saved="${esc(typed)}" onchange="spChange(this)">${opts.join("")}</select>
+    <input data-g="${esc(r.game_id)}" data-side="${side}" placeholder="Last, First" hidden onkeydown="if(event.key==='Enter')spTyped(this)" onblur="spTyped(this)">
+    ${spTag(s)}${lock ? `<span class="lock" title="Game has started or is in the past: what-if only">🔒 preview only</span>` : ""}</div>`;
+}
+const spSel = (gid, side) => document.querySelector(`select[data-g="${CSS.escape(gid)}"][data-side="${side}"]`);
+const spVal = (gid, side) => { const el = spSel(gid, side); return el.dataset.typedValue ?? (el.value === "__other" ? "" : el.value); };
+function spChange(el) {
+  const inp = el.parentElement.querySelector("input");
+  delete el.dataset.typedValue;
+  if (el.value === "__other") { inp.hidden = false; inp.focus(); return; }
+  inp.hidden = true; whatIf(el.dataset.g);
+}
+function spTyped(inp) {
+  const v = inp.value.trim(); if (!v) return;
+  const el = inp.parentElement.querySelector("select");
+  if (el.dataset.typedValue === v) return;
+  el.dataset.typedValue = v; whatIf(inp.dataset.g);
+}
+async function whatIf(gid) {
+  const box = document.getElementById("wi-" + gid), lock = (SP[gid] || {}).locked;
+  const pick = {home: spVal(gid, "home") || null, away: spVal(gid, "away") || null};
+  const saved = {home: spSel(gid, "home").dataset.saved || null, away: spSel(gid, "away").dataset.saved || null};
+  box.hidden = false;
+  if (pick.home === saved.home && pick.away === saved.away) { box.hidden = true; box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="msg">Simulating this game with those starters… The first preview for a date waits for the slate to finish building (about 2 minutes on the Pi, started when you opened this tab); after that each one takes seconds.</div>`;
+  const res = await fetch("api/starters/whatif", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({date: day, game_id: gid, ...pick})}).then(r => r.json()).catch(e => ({error: String(e)}));
+  if (res.error) { box.innerHTML = `<div class="msg neg">What-if failed: ${esc(res.error)}</div>`; return; }
+  const c = res.current, w = res.whatif, rows = [["Away runs", "proj_away", 2], ["Home runs", "proj_home", 2], ["Total", "proj_total", 2]];
+  const prow = (k, lab) => `<tr><td>${lab}</td><td class="num">${pct(c[k])}</td><td class="num">${pct(w[k])}</td><td class="num">${sgn(100 * (w[k] - c[k]), 1, " pts")}</td></tr>`;
+  const mrow = (k, lab) => `<tr><td>${lab}</td><td class="num">${am(c[k])}</td><td class="num">${am(w[k])}</td><td></td></tr>`;
+  box.innerHTML = `<div class="scroll"><table><thead><tr><th>With these starters</th><th>Now</th><th>What-if</th><th>Change</th></tr></thead><tbody>
+    ${rows.map(([lab, k, d]) => `<tr><td>${lab}</td><td class="num">${f(c[k], d)}</td><td class="num">${f(w[k], d)}</td><td class="num">${sgn(w[k] - c[k], 2)}</td></tr>`).join("")}
+    ${prow("p_away", "Away win")}${prow("p_home", "Home win")}${mrow("fair_away_american", "Fair ML away")}${mrow("fair_home_american", "Fair ML home")}
+    </tbody></table></div>
+    <div class="acts">${lock ? `<span class="msg">Preview only — this game has started or is past.</span>` :
+      `<button class="primary" onclick="spConfirm('${esc(gid)}')">Confirm starters &amp; re-price</button>`}
+      <button onclick="spDiscard('${esc(gid)}')">Discard</button><span class="msg">${res.seconds}s · nothing saved until you confirm</span></div>`;
+}
+function spDiscard(gid) {
+  for (const side of ["home", "away"]) {
+    const el = spSel(gid, side); delete el.dataset.typedValue;
+    el.value = [...el.options].some(o => o.value === el.dataset.saved) ? el.dataset.saved : "";
+    el.parentElement.querySelector("input").hidden = true;
+  }
+  const box = document.getElementById("wi-" + gid); box.hidden = true; box.innerHTML = "";
+}
+async function spConfirm(gid) {
+  const box = document.getElementById("wi-" + gid);
+  for (const side of ["home", "away"]) {
+    const el = spSel(gid, side), v = spVal(gid, side) || null;
+    if ((el.dataset.saved || null) === v) continue;
+    const res = await fetch("api/starters/set", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({date: day, game_id: gid, team: SP[gid][side].team, value: v})}).then(r => r.json());
+    if (res.error) { box.innerHTML = `<div class="msg neg">${esc(res.error)}</div>`; return; }
+  }
+  box.innerHTML = `<div class="msg">Saved. Re-projecting and re-pricing ${day} off the stored lines (no odds credits)…</div>`;
+  await fetch("api/starters/apply", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({date: day})});
+  $("#job").textContent = "re-pricing…";
+  const t = setInterval(async () => {
+    const s = await fetch("api/starters/apply/status").then(r => r.json());
+    if (s.running) return;
+    clearInterval(t);
+    $("#job").textContent = s.code === 0 ? "starters applied" : `re-price failed (exit ${s.code})`;
+    if (s.code !== 0) console.error(s.tail);
+    render();
+  }, 2500);
+}
+const fairAm = p => p <= 0 || p >= 1 ? null : (p >= .5 ? -Math.round(100 * p / (1 - p)) : Math.round(100 * (1 - p) / p));
+
+async function perf() {
+  const d = await api("perf"), o = (d.performance || {}).overall || {}, pr = d.projection_record || {};
+  // v0.3 (kit v2): n / clv_pct (points) / beat_close / realized_over_ev / brier / roi_flat, with the v0.2 names as fallback
+  const clvPts = r => r.clv_pct ?? (r.mean_clv_prob == null ? null : 100 * r.mean_clv_prob);
+  const promo = (d.performance || {}).promotion;
+  let h = `<div class="tiles">${tile("Graded plays", o.n ?? o.n_plays ?? 0, "read CLV first, ROI last")}${tile("CLV", clvPts(o) == null ? "—" : sgn(clvPts(o), 2, " pts"), "n=" + (o.clv_n ?? 0) + " · beat close " + pct(o.beat_close ?? o.beat_close_rate))}
+    ${tile("Realized / EV", f(o.realized_over_ev ?? o.realized_over_expected), "believe at ~300 plays")}${tile("Brier (bet side)", f(o.brier ?? o.brier_score, 4), o.brier_skill == null ? "" : "skill vs market " + sgn(o.brier_skill, 3))}${tile("ROI", (o.roi_flat ?? o.roi_pct) == null ? "—" : sgn(o.roi_flat ?? o.roi_pct, 1, "%"), (o.wins ?? 0) + "-" + (o.losses ?? 0) + "-" + (o.pushes ?? 0))}
+    ${tile("Units flat / Kelly", o.units_flat == null ? "—" : sgn(o.units_flat, 2) + " / " + sgn(o.units_kelly, 2), promo ? (promo.promote ? "promotion: ready" : "stage " + ((d.performance || {}).stage || "probation")) : "1u flat · 1u = 1% bankroll")}</div>`;
+  h += `<div class="card"><h2>Live projection record (every game projected, bet or not)</h2><div class="scroll"><table><thead><tr><th>Games</th><th>Log loss</th><th>Brier</th><th>Home win rate</th><th>Mean P(home)</th><th>Total MAE</th><th>Total bias</th></tr></thead>
+    <tbody><tr><td>${pr.n ?? 0}</td><td class="num">${f(pr.logloss, 4)}</td><td class="num">${f(pr.brier, 4)}</td><td class="num">${pct(pr.home_win_rate)}</td><td class="num">${pct(pr.mean_p_home)}</td><td class="num">${f(pr.mae_total)}</td><td class="num">${sgn(pr.bias_total, 2)}</td></tr></tbody></table></div></div>`;
+  for (const k of ["by_market", "by_ev_bucket", "by_sp_info", "by_book"]) {
+    const t = (d.performance || {})[k] || [];
+    if (!t.length) continue;
+    const key = k.replace("by_", "");
+    h += `<div class="card"><h2>By ${key.replace("_", " ")}</h2><div class="scroll"><table><thead><tr><th>${key}</th><th>Plays</th><th>W-L-P</th><th>CLV</th><th>Realized/EV</th><th>ROI</th></tr></thead><tbody>` +
+      t.map(r => `<tr><td>${esc(r[key])}</td><td class="num">${r.n ?? r.n_plays}</td><td class="num">${r.wins}-${r.losses}-${r.pushes}</td><td class="num">${clvPts(r) == null ? "—" : sgn(clvPts(r), 2)}</td><td class="num">${f(r.realized_over_ev ?? r.realized_over_expected)}</td><td class="num">${sgn(r.roi_flat ?? r.roi_pct, 1, "%")}</td></tr>`).join("") + `</tbody></table></div></div>`;
+  }
+  main.innerHTML = h;
+}
+
+async function model() {
+  const d = await api("model"), ft = d.fitted || {}, cv = d.cv || {}, ho = (d.holdout || {}).sp_actual || {};
+  $("#ver").textContent = `v${ft.pipeline_version || "?"} · fitted ${(ft.trained_at || "").slice(0, 10)}`;
+  const w = cv.wins_pooled || {}, hw = ho.wins || {};
+  const row = (name, a, b) => `<tr><td>${name}</td><td class="num">${f(a?.logloss, 4)}</td><td class="num">${f(a?.brier, 4)}</td><td class="num">${pct(a?.acc)}</td><td class="num">${f(b?.logloss, 4)}</td><td class="num">${f(b?.brier, 4)}</td><td class="num">${pct(b?.acc)}</td></tr>`;
+  let h = `<div class="tiles">${tile("GBM stage", ft.use_gbm ? "ON" : "gated off", "ΔLL " + f(ft.gbm_gate?.pooled_dll, 4))}${tile("Win-prob stack", ft.use_stack ? "ON" : ft.use_platt ? "Platt" : "simulator only", "")}
+    ${tile("λ calibration", ft.lambda_cal?.method === "game_loglinear" ? "level " + f(ft.lambda_cal.b_level, 2) + " · gap " + f(ft.lambda_cal.b_gap, 2) : "identity", "b on scoring level / team gap")}${tile("Anchor w_model", !d.anchor ? "config" : d.anchor.families ? ["ml", "rl", "total"].map(k => k + " " + f((d.anchor.families[k] || {}).w_model, 2)).join(" · ") : f(d.anchor.w_model, 2), !d.anchor ? "refit at 300 priced rows" : d.anchor.families ? ((d.anchor.families.ml || {}).source || "") + " · cap 0.5" : d.anchor.n_plays + " plays")}
+    ${tile("PIT tail share", f(cv.pit_tail_share, 3), "0.20 is perfect")}${tile("Fit seasons", (ft.fit_seasons || []).join(", ") || "—", "holdout " + (ft.holdout_season ?? "—"))}</div>
+    <div class="card"><h2>Win probability vs the benchmarks (D1 vs D1)</h2><div class="scroll"><table><thead><tr><th>Model</th><th>CV log loss</th><th>CV Brier</th><th>CV acc</th><th>Holdout log loss</th><th>Holdout Brier</th><th>Holdout acc</th></tr></thead><tbody>
+    ${row("Omaha (final)", w.p_stack && ft.use_stack ? w.p_stack : w.p_sim, hw.p_final)}${row("Omaha simulator", w.p_sim, hw.p_sim)}${row("Omaha, inferred starters only", w.p_sim_inferred_sp, (d.holdout?.sp_inferred?.wins || {}).p_final)}
+    ${row("Elo (margin-aware)", w.p_elo, hw.p_elo)}${row("ISR (Boyd Nation)", w.p_isr, hw.p_isr)}</tbody></table></div></div>`;
+  const fc = Object.entries(ft.factor_coefs || {});
+  h += `<div class="card"><h2>Offset factor exponents (Poisson GLM)</h2><div class="scroll"><table><thead><tr><th>Factor</th><th>Coefficient</th></tr></thead><tbody>${fc.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${sgn(v, 4)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  h += `<div class="card"><h2>GBM gain share</h2><div class="scroll"><table><thead><tr><th>Feature</th><th>Share</th><th style="width:40%"></th></tr></thead><tbody>${(ft.gbm_importance || []).slice(0, 14).map(r => `<tr><td>${esc(r.feature)}</td><td class="num">${pct(r.gain_share)}</td><td><div class="bar"><i style="width:${100 * r.gain_share / (ft.gbm_importance[0].gain_share || 1)}%"></i></div></td></tr>`).join("")}</tbody></table></div></div>`;
+  h += `<div class="card"><h2>Simulator</h2><pre>${esc(JSON.stringify(ft.sim, null, 1))}</pre></div>`;
+  main.innerHTML = h;
+}
+
+async function market() { main.innerHTML = `<div class="card"><h2>Market availability (cb_bet.py report)</h2><pre>${esc(await api("market"))}</pre></div>`; }
+
+const views = {board, games, perf, model, market};
+const render = () => views[tab]().catch(e => main.innerHTML = `<div class="card"><div class="empty">Could not load (${esc(e)}).</div></div>`);
+$("#tabs").onclick = e => { if (!e.target.dataset.t) return; tab = e.target.dataset.t; document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b === e.target)); render(); };
+$("#date").onchange = e => { day = e.target.value; render(); };
+
+async function run(pull) {
+  $("#pull").disabled = $("#reprice").disabled = true; $("#job").textContent = "running…";
+  await fetch("api/refresh", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({pull})});
+  const t = setInterval(async () => {
+    const s = await fetch("api/refresh/status").then(r => r.json());
+    if (s.running) return;
+    clearInterval(t); $("#pull").disabled = $("#reprice").disabled = false;
+    $("#job").textContent = s.code === 0 ? `done · ${s.credits ?? "?"} credits` : `failed (exit ${s.code})`;
+    render();
+  }, 2500);
+}
+$("#pull").onclick = () => run(true);
+$("#reprice").onclick = () => run(false);
+
+(function(){ const root=document.documentElement;
+  try{ const t=localStorage.getItem('wk-theme'); if(t) root.dataset.theme=t; }catch(e){}
+  document.getElementById('theme-btn').onclick=()=>{
+    const dark = root.dataset.theme ? root.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark?'light':'dark'; try{ localStorage.setItem('wk-theme',root.dataset.theme); }catch(e){} };
+})();
+const clock = () => { const n = new Date(); $("#clock").textContent = n.toISOString().slice(11, 19) + " UTC"; };
+clock(); setInterval(clock, 1000);
+(async () => {
+  const d = await api("games?date=" + day).catch(() => ({dates: []}));
+  const ds = [...new Set([...(d.dates || []), day])].sort().reverse();
+  $("#date").innerHTML = ds.map(x => `<option ${x === day ? "selected" : ""}>${x}</option>`).join("");
+  api("model").then(m => { const ft = m.fitted || {}; $("#ver").textContent = `v${ft.pipeline_version || "?"} · fitted ${(ft.trained_at || "").slice(0, 10)}`; }).catch(() => {});
+  render();
+})();
+</script>
+
+<a id="wk-snap-pill" href="../" title="Public snapshot: read-only copy of the Pi dashboard">
+  <span class="wk-snap-dot"></span><span>&#8592; Dashboards</span><span class="wk-snap-age" id="wk-snap-age">snapshot</span>
+</a>
+<style>
+#wk-snap-pill{position:fixed;left:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;background:var(--hdr-bg,#14233A);color:var(--hdr-text,#F4EFE4);
+  border:1px solid var(--brass-hi,#D4AF67);font:600 12px/1 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#wk-snap-pill:hover{background:var(--navy-ink,#1d3150)}
+#wk-snap-pill .wk-snap-age{font:500 11px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--hdr-dim,#B8C1CF)}
+#wk-snap-pill .wk-snap-dot{width:7px;height:7px;border-radius:50%;background:#D4AF67}
+@media print{#wk-snap-pill{display:none}}
+#reprice, #pull{display:none!important}
+</style>
+<script>
+(function(){var el=document.getElementById('wk-snap-age');if(!el||!window.__WK_SNAP)return;
+fetch(window.__WK_SNAP.root+'status.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(s){
+var t=s&&s.published_at?new Date(s.published_at):null;if(!t)return;var m=Math.round((Date.now()-t)/60000);
+el.textContent='snapshot '+(m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago');
+el.title='published '+t.toLocaleString();}).catch(function(){});})();
+</script>
+</body>
+</html>
