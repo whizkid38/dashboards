@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>Capture your book's board · Hawkey Board</title>
+<!-- 2026-11-12 (away build B): one-click capture of the local book's NCAA hockey board -> the paste pipeline. -->
+<link rel="stylesheet" href="static/capture.css">
+</head>
+<body>
+<header>
+  <a href="./" title="Hawkey Board"><div class="logo">Hawkey <b>Board</b></div><div class="hd">Capture your book's board · NCAA D-I men's hockey</div></a>
+</header>
+<main class="cap">
+  <h1>Capture your book's board</h1>
+  <p class="dim">Your book's prices go through the same pipeline as a pasted board (<code>bets.sh</code>): matched to tonight's games,
+    written to <code>manual_lines.csv</code> as book <code>localbook</code>, and priced by the kit against the stored feed lines.
+    Moneylines then get a real EV. A board older than 45 minutes stops counting (stale line), so capture it close to when you bet.</p>
+
+  <div class="card">
+    <h2>1 · Bookmarklet (one click, desktop)</h2>
+    <p>Drag this button to your bookmarks bar:</p>
+    <p class="row"><a class="bm" id="bm" href="#">Hawkey: send board</a> <span class="dim">(drag it, do not click it here)</span></p>
+    <p>Then open your book's NCAA hockey board, logged in as usual, and click the bookmark. It takes the <b>visible text</b> of that page
+      (nothing else: no cookies, no passwords, no hidden fields), copies it to your clipboard as a backup, and opens a new tab here with the result.</p>
+    <p class="dim">It sends to <code id="dest">…</code>, the address you opened this page from. Open this page from the address you will use
+      (e.g. <code>http://localhost:5656/capture</code> on the Pi), then drag the button. The button carries this dashboard's capture key;
+      drag it again if the key is ever reset.</p>
+  </div>
+
+  <div class="card">
+    <h2>2 · Paste box (any device, phones too)</h2>
+    <form id="pf" method="post" enctype="multipart/form-data" accept-charset="utf-8">
+      <input type="hidden" name="token" value="EVIOBPUewscLZOVx-QEBn2gR">
+      <textarea name="text" id="txt" placeholder="On your book's board: Select all, Copy, then paste here." maxlength="512000" required></textarea>
+      <div class="row"><button type="submit">Send board</button><span class="dim" id="sz"></span></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Which setups work</h2>
+    <table>
+      <thead><tr><th>Where you are</th><th>Bookmarklet</th><th>Paste box</th></tr></thead>
+      <tbody>
+        <tr><td>Browser on the Pi, this page opened as <code>http://localhost:5656/capture</code></td><td class="ok">works (tested 2026-11-12)</td><td class="ok">works</td></tr>
+        <tr><td>Desktop browser on another computer, via Tailscale or the LAN (<code>http://&lt;pi&gt;:5656/capture</code> or <code>http://&lt;pi&gt;/cbh/capture</code>)</td>
+          <td class="warn">should work: Chrome / Edge / Firefox show a "form is not secure" warning because your book is https and the dashboard is http. Click "Send anyway".</td><td class="ok">works</td></tr>
+        <tr><td>Phone (iPhone / Android)</td><td class="warn">bookmarklets are awkward on phones</td><td class="ok">works: Select all → Copy on the book's page, paste here</td></tr>
+        <tr><td>Your book's site blocks it (strict page security, or nothing opens)</td><td class="no">no new tab</td><td class="ok">the bookmarklet already copied the text: paste it in box 2</td></tr>
+      </tbody>
+    </table>
+    <p class="dim" style="margin-top:8px">Why a new tab: a script on an https site may not call an http address (only localhost is exempt), but it may submit a form to one.
+      Only the Pi → localhost case and the paste box were checked on this machine; the other-computer case depends on your browser's warning.</p>
+  </div>
+
+  <div class="card">
+    <h2>What you get back</h2>
+    <ul>
+      <li>games matched to tonight's slate, lines read, lines that matched no game (named), one-sided lines</li>
+      <li>any qualifying plays from your book (kit EV gate, probation stake), which then show on the EV board</li>
+      <li>moneyline rows keep showing the fair price and "bet at X or better" next to your book's price</li>
+    </ul>
+    <p class="dim">Your text is saved as <code>market/odds/board_&lt;time&gt;.txt</code>, exactly like a <code>bets.sh</code> paste. Limit 500 KB, plain text only.</p>
+  </div>
+  <p><a href="./">← Hawkey Board</a></p>
+</main>
+<script>
+(function () {
+  var dest = new URL("api/capture", location.href).href;                 // prefix-aware: /capture or /cbh/capture
+  var token = document.querySelector("input[name=token]").value;
+  document.getElementById("dest").textContent = dest;
+  document.getElementById("pf").action = "api/capture";
+  // the bookmarklet: visible text only (document.body.innerText), copied to the clipboard as a fallback, then a form POST
+  // in a new tab (a navigation, which an https page may send to an http address; a fetch would be blocked)
+  var src = "(function(){var U=" + JSON.stringify(dest) + ",K=" + JSON.stringify(token) + ";" +
+    "var t=(document.body&&document.body.innerText)||'';if(!t.trim()){alert('Hawkey: no visible text on this page');return;}" +
+    "if(t.length>500000)t=t.slice(0,500000);" +
+    "try{navigator.clipboard&&navigator.clipboard.writeText(t).catch(function(){});}catch(e){}" +
+    "var f=document.createElement('form');f.method='POST';f.action=U;f.target='_blank';f.enctype='multipart/form-data';" +
+    "f.acceptCharset='utf-8';f.style.display='none';" +
+    "[['text',t],['token',K]].forEach(function(p){var i=document.createElement('textarea');i.name=p[0];i.value=p[1];f.appendChild(i);});" +
+    "document.body.appendChild(f);f.submit();setTimeout(function(){f.remove();},1000);})();";
+  var bm = document.getElementById("bm");
+  bm.href = "javascript:" + encodeURIComponent(src).replace(/%2C/g, ",").replace(/%3B/g, ";").replace(/%3D/g, "=");
+  bm.addEventListener("click", function (e) { e.preventDefault(); alert("Drag this button to your bookmarks bar, then click it on your book's board."); });
+  var txt = document.getElementById("txt"), sz = document.getElementById("sz");
+  txt.addEventListener("input", function () { var n = new Blob([txt.value]).size; sz.textContent = n ? (n / 1024).toFixed(1) + " KB" + (n > 512000 ? " (over the 500 KB limit)" : "") : ""; });
+})();
+</script>
+</body>
+</html>

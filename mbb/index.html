@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<script>
+/* wk-snap.js — injected into every board page by wk_site.py (do not load it directly).
+   The page's own code is untouched: its fetch(API + "/api/…") calls are answered from snap/ files saved on the
+   last run. GET → the saved response (same status as the Pi gave); anything that writes → a read-only error;
+   an API call that was not saved → a 404 with a message. Calls to other sites pass straight through. */
+(function () {
+  var S = window.__WK_SNAP = {"v":"2672b868333a","files":{"api/config":["snap/api_config-123c3929.json",200,"application/json"],"api/slate":["snap/api_slate-3bdcaf5f.json",200,"application/json"],"api/results":["snap/api_results-2327cee0.json",200,"application/json"],"api/model":["snap/api_model-45a95834.json",200,"application/json"],"api/health":["snap/api_health-083f73b2.json",200,"application/json"],"api/game/401922284":["snap/api_game_401922284-aaf5823c.json",200,"application/json"],"api/game/401924884":["snap/api_game_401924884-dcc3cd48.json",200,"application/json"],"api/game/401923402":["snap/api_game_401923402-132116f7.json",200,"application/json"],"api/game/401925756":["snap/api_game_401925756-2cddbe2d.json",200,"application/json"],"api/game/401920948":["snap/api_game_401920948-e4ff5e4f.json",200,"application/json"],"api/game/401921169":["snap/api_game_401921169-ac8b6b99.json",200,"application/json"],"api/game/401921811":["snap/api_game_401921811-2f1a45a4.json",200,"application/json"],"api/game/401923312":["snap/api_game_401923312-47878693.json",200,"application/json"],"api/game/401919828":["snap/api_game_401919828-d116b1aa.json",200,"application/json"],"api/game/401909719":["snap/api_game_401909719-348786a0.json",200,"application/json"],"api/game/401909730":["snap/api_game_401909730-0fdc59d0.json",200,"application/json"],"api/game/401911022":["snap/api_game_401911022-dda1b41d.json",200,"application/json"],"api/game/401911199":["snap/api_game_401911199-f1f6e20b.json",200,"application/json"],"api/game/401919031":["snap/api_game_401919031-c3130665.json",200,"application/json"],"api/game/401920773":["snap/api_game_401920773-1d00789b.json",200,"application/json"],"api/game/401921222":["snap/api_game_401921222-a2d6c738.json",200,"application/json"],"api/game/401922222":["snap/api_game_401922222-855d1f1c.json",200,"application/json"],"api/game/401924722":["snap/api_game_401924722-4ebf9b25.json",200,"application/json"],"api/game/401924882":["snap/api_game_401924882-c9de0d5d.json",200,"application/json"],"api/game/401928819":["snap/api_game_401928819-bc92a259.json",200,"application/json"],"api/game/401929452":["snap/api_game_401929452-813cf8cf.json",200,"application/json"],"api/game/401917953":["snap/api_game_401917953-09d77a14.json",200,"application/json"],"api/game/401920846":["snap/api_game_401920846-cc22deb2.json",200,"application/json"],"api/game/401927365":["snap/api_game_401927365-e9eb5b05.json",200,"application/json"],"api/game/401911278":["snap/api_game_401911278-51003a1a.json",200,"application/json"],"api/game/401917918":["snap/api_game_401917918-b7b20b16.json",200,"application/json"],"api/game/401918995":["snap/api_game_401918995-9c83ae9f.json",200,"application/json"],"api/game/401921183":["snap/api_game_401921183-53028429.json",200,"application/json"],"api/game/401922048":["snap/api_game_401922048-5c3c589c.json",200,"application/json"],"api/game/401923322":["snap/api_game_401923322-8f6a596c.json",200,"application/json"],"api/game/401925890":["snap/api_game_401925890-9ba4caab.json",200,"application/json"],"api/game/401926113":["snap/api_game_401926113-79485b8b.json",200,"application/json"],"api/game/401917538":["snap/api_game_401917538-66725e16.json",200,"application/json"],"api/game/401911337":["snap/api_game_401911337-c5efa964.json",200,"application/json"],"api/game/401919849":["snap/api_game_401919849-1f61641e.json",200,"application/json"],"api/game/401925065":["snap/api_game_401925065-180aefe2.json",200,"application/json"],"api/game/401925709":["snap/api_game_401925709-32f2935a.json",200,"application/json"],"api/game/401909517":["snap/api_game_401909517-9515865b.json",200,"application/json"],"api/game/401911023":["snap/api_game_401911023-26736384.json",200,"application/json"],"api/game/401925897":["snap/api_game_401925897-970de16c.json",200,"application/json"],"api/game/401911310":["snap/api_game_401911310-406669aa.json",200,"application/json"],"api/game/401911378":["snap/api_game_401911378-0ff88e9e.json",200,"application/json"],"api/game/401911394":["snap/api_game_401911394-be194bcf.json",200,"application/json"],"api/game/401917539":["snap/api_game_401917539-a43de6c0.json",200,"application/json"],"api/game/401920125":["snap/api_game_401920125-4c7f5203.json",200,"application/json"],"api/game/401920964":["snap/api_game_401920964-687e49eb.json",200,"application/json"],"api/game/401920975":["snap/api_game_401920975-b4e45520.json",200,"application/json"],"api/game/401921776":["snap/api_game_401921776-062d25ed.json",200,"application/json"],"api/game/401926217":["snap/api_game_401926217-cae5f419.json",200,"application/json"],"api/game/401917966":["snap/api_game_401917966-f849887b.json",200,"application/json"],"api/game/401925099":["snap/api_game_401925099-eb438b32.json",200,"application/json"],"api/game/401928998":["snap/api_game_401928998-585c09c4.json",200,"application/json"],"api/game/401925049":["snap/api_game_401925049-596fd921.json",200,"application/json"],"api/game/401917537":["snap/api_game_401917537-5a3f3161.json",200,"application/json"],"api/game/401909567":["snap/api_game_401909567-d1ab2cd0.json",200,"application/json"]},"root":"../","name":"Hardwood","abs":false,"eval":null,"noq":[],"derive":[],"msg_ro":"Read-only snapshot. Pulls, grading and edits run on the Pi.","msg_missing":"Not in the public snapshot. This view runs live on the Pi."};
+  if (!S || !window.fetch) return;
+  var dir = location.pathname.replace(/[^\/]*$/, '');          // the board's folder, e.g. /whizkid-site/nfl/
+  var real = window.fetch.bind(window);
+
+  function keyOf(u) {
+    var rel;
+    if (u.pathname.indexOf(dir) === 0) rel = u.pathname.slice(dir.length).replace(/^\/+/, '');
+    else if (S.abs && u.pathname.indexOf('/api/') === 0) rel = u.pathname.slice(1);   // pages that call "/api/…"
+    else return null;
+    try { rel = decodeURIComponent(rel); } catch (e) {}
+    if (!/^([A-Za-z0-9_-]+\/)?api\//.test(rel)) return null;                  // api/… or e.g. saves/api/… (hub pages)
+    for (var i = 0; i < (S.noq || []).length; i++) if (rel.indexOf(S.noq[i]) === 0) return rel;   // player cards: path only
+    var ps = [];
+    u.searchParams.forEach(function (v, k) { ps.push([k, v]); });
+    ps.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); });
+    return rel + (ps.length ? '?' + ps.map(function (p) { return p[0] + '=' + p[1]; }).join('&') : '');
+  }
+  function json(obj, status) {
+    return new Response(JSON.stringify(obj), {status: status, headers: {'Content-Type': 'application/json'}});
+  }
+
+  // ── "evaluate a line": the Pi's own probability at each line (snap/evaluator.json), your price priced here ──
+  var EV = null;
+  function dec(o) { return o > 0 ? 1 + o / 100 : 1 + 100 / Math.abs(o); }
+  function implied(o) { return o > 0 ? 100 / (o + 100) : Math.abs(o) / (Math.abs(o) + 100); }
+  function american(p) { if (!(p > 0 && p < 1)) return null; return p >= 0.5 ? Math.round(-100 * p / (1 - p)) : Math.round(100 * (1 - p) / p); }
+  function evaluate(u) {
+    var q = u.searchParams, fail = function (m) { return json({error: m}, 400); };
+    if (q.get('period')) return Promise.resolve(fail('On the public copy, Evaluate a line works on the latest period only.'));
+    var load = EV ? Promise.resolve(EV) : real(dir + S.eval + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (d) { return (EV = d); });
+    return load.then(function (E) {
+      var P = E.players[String(q.get('player'))];
+      if (!P) return fail('No line ladder for this player in the public copy (not on the latest projections).');
+      var ln = Math.round(parseFloat(q.get('line')) * 2) / 2, g = P.g[String(ln)];
+      if (!g) { var ks = Object.keys(P.g).map(Number).sort(function (a, b) { return a - b; });
+        return fail('The public copy prices ' + ks[0] + '–' + ks[ks.length - 1] + (E.kelly === 'cond' ? ' (half lines)' : '') + ' for this player; ' + ln + ' is outside it.'); }
+      var po = g[0], pu = g[1], pp = g[2] || 0, nb = (P.nb || {})[String(ln)];
+      var bar = (E.single && nb === 1) ? E.single : E.bar;
+      var over = parseInt(q.get('over'), 10), under = parseInt(q.get('under'), 10);
+      var sides = [['over', over, po, pu], ['under', under, pu, po]].map(function (x) {
+        var pw = x[2], pl = x[3], o = x[1], s = {side: x[0], p_win: pw, p_lose: pl, fair: american(pw / Math.max(pw + pl, 1e-9)), odds: isNaN(o) ? null : o};
+        if (isNaN(o) || o === 0 || Math.abs(o) < 100) return s;
+        var b = dec(o) - 1, ev = (pw * b - pl) * 100, k;
+        if (E.kelly === 'cond') { var p = pw / Math.max(pw + pl, 1e-12); k = Math.max(0, (p * b - (1 - p)) / b) * E.kf * 100; }
+        else k = Math.max(0, (b * pw - pl) / b * E.kf) * 100;
+        s.ev = ev; s.kelly_pct = Math.min(k, E.cap_pct); s.implied = implied(o);
+        var fl = [];
+        if (E.max_ev != null && ev > E.max_ev) fl.push({block: true, text: 'Over the ' + E.max_ev + '% sanity cap. Edges this big are usually a wrong line, a wrong player or stale news, so the pipeline skips them. Check before betting.'});
+        if (E.kelly === 'cond' && !P.lam_k) fl.push({block: true, text: "No market λ for this player yet. The pipeline won't bet a model-only number."});
+        if (E.sport === 'saves' && P.status && P.status !== 'Confirmed') fl.push({block: false, text: 'Starter is ' + P.status + ", not confirmed. A goalie who doesn't start is usually a void, but check your book's rule."});
+        if (E.sport === 'shots' && P.status && /\b(out|scratch|scratched|ir|ltir|gtd|questionable|doubtful|dtd|unconfirmed)\b/i.test(P.status)) fl.push({block: false, text: 'Lineup status is ' + P.status + ". Make sure he's playing before you bet."});
+        if (E.single && E.bar <= ev && ev < E.single) fl.push({block: false, text: 'Clears ' + E.bar + '%, but when only one book hangs this line the pipeline wants ' + E.single + '%.'});
+        s.flags = fl;
+        return s;
+      });
+      var notes = (P.notes || []).concat(E.notes || []);
+      notes.push('Public copy: model probabilities from the Pi as of ' + new Date(E.built_at).toLocaleString() + (E.kelly === 'cond' ? '; the star-under and model-side rules are only checked on the Pi.' : '.'));
+      return json({line: ln, sides: sides, bar: bar, lam_label: P.lam_label, p_push: pp, notes: notes,
+                   hold_pct: (!isNaN(over) && !isNaN(under)) ? (implied(over) + implied(under) - 1) * 100 : null}, 200);
+    }).catch(function () { return fail('The public copy could not load its line ladder.'); });
+  }
+
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var u;
+    try { u = new URL(url, location.href); } catch (e) { return real(input, init); }
+    if (u.origin !== location.origin) return real(input, init);
+    var k = keyOf(u);
+    if (k === null) return real(input, init);
+    if (method !== 'GET' && method !== 'HEAD')
+      return Promise.resolve(json({error: S.msg_ro, ok: false, started: false, readonly: true}, 403));
+    if (S.eval && k.indexOf('api/wk/evaluate') === 0) return evaluate(u);
+    // derive: one item out of a saved bigger answer, e.g. api/matchup?date=D&id=X  ←  api/matchups?date=D → games[X]
+    for (var di = 0; di < (S.derive || []).length; di++) {
+      var D = S.derive[di];
+      if (k.split('?')[0] !== D.path || S.files[k]) continue;
+      var keep = (D.keep || []).map(function (p) { return [p, u.searchParams.get(p) || '']; }).filter(function (x) { return x[1]; });
+      keep.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      var src = D.from + (keep.length ? '?' + keep.map(function (x) { return x[0] + '=' + x[1]; }).join('&') : '');
+      var sh = S.files[src], id = u.searchParams.get(D.by || 'id');
+      if (!sh) break;
+      return real(dir + sh[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) { return r.json(); }).then(function (all) {
+        var coll = (D.pick || '').split('.').filter(Boolean).reduce(function (o, p) { return o ? o[p] : null; }, all);
+        var item = coll && (Array.isArray(coll) ? coll.filter(function (g) { return String(g[D.match || 'id']) === String(id); })[0] : coll[id]);
+        return item ? json(item, 200) : json({error: id + ' is not in the public snapshot for that day.'}, 404);
+      }).catch(function () { return json({error: S.msg_missing}, 404); });
+    }
+    var hit = S.files[k];
+    if (!hit) {
+      (S.misses = S.misses || []).push(k);
+      if (window.console) console.info('[wk-snap] not in the snapshot:', k);
+      return Promise.resolve(json({error: S.msg_missing, readonly: true}, 404));
+    }
+    return real(dir + hit[0] + '?v=' + S.v, {cache: 'no-cache'}).then(function (r) {
+      if (!r.ok) return json({error: 'Snapshot file missing (' + r.status + ')'}, 404);
+      return r.blob().then(function (b) {
+        return new Response(b, {status: hit[1] || 200, headers: {'Content-Type': hit[2] || 'application/json'}});
+      });
+    });
+  };
+})();
+
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="theme-color" content="#14233A"/>
+<script>(function(){try{var t=localStorage.getItem('wk-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Game lines · Whizkid Automations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="wk/wk.css"/>
+<style>
+.mt{font-size:12px;color:var(--dim)}
+.legend{font-size:12.5px;color:var(--dim);line-height:1.55;padding:8px 2px 10px}
+.legend b{color:var(--text)}
+table.gb{border-collapse:collapse;width:100%}
+#tbl-wrap{overflow-x:auto}
+.gb th{white-space:nowrap;vertical-align:bottom;text-align:left}
+.gb th .hs{display:block;font-size:10px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--dim);margin-top:2px}
+.gb tbody{cursor:pointer}
+.gb tbody td{padding:6px 6px;vertical-align:middle;border-bottom:none}
+.gb tbody tr.r2 td{border-bottom:1px solid var(--border2)}
+.gb tbody td.span{border-bottom:1px solid var(--border2)}
+.gb tbody:hover td,.gb tbody.sel td{background:var(--green-soft)}
+.gb tbody.has-q td.span:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.gb .tm{font-size:14px;font-weight:600;white-space:nowrap}
+.gb .tm .rk{font-size:11px;color:var(--dim);font-weight:500;margin-left:5px}
+.gb .t{font-family:var(--mono);font-size:12.5px;color:var(--dim);white-space:nowrap}
+.gb .px{font-family:var(--mono);font-size:13.5px;font-weight:600;white-space:nowrap}
+.gb .px .bk{font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;color:var(--dim);margin-left:5px}
+.gb .md{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.gb .md .f{color:var(--dim);font-size:11.5px;margin-left:4px}
+.ev{font-family:var(--mono);font-size:13px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap;display:inline-block;min-width:54px;text-align:center}
+.ev-q{background:var(--green);color:#fff}
+.ev-p{background:var(--green-soft);color:var(--green)}
+.ev-s{background:var(--green-soft);color:var(--green);outline:1px dashed var(--green)}
+.ev-n{color:var(--dim);font-weight:500}
+.mkt-h{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--dim)}
+.why{font-size:11px;color:var(--dim)}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.dt th{font-size:10.5px;font-weight:600;color:var(--dim);text-align:right;padding:4px 5px;border-bottom:1px solid var(--border2);white-space:nowrap}
+.dt td{padding:5px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap}
+.dt th:first-child,.dt td:first-child{text-align:left}
+.dt td:first-child{font-family:inherit;font-weight:600}
+.dt tr.q td{background:var(--green-soft)}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:8px 0}
+.kv>div{border:1px solid var(--border);border-radius:7px;padding:7px 9px}
+.kv .k{font-size:10.5px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.kv .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:2px}
+.dh{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:14px 0 4px}
+.evrow{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.evrow select,.evrow input{font-size:13px;padding:6px 8px}
+.evrow input{width:84px}
+.evout{font-size:13px;margin-top:8px;line-height:1.6;font-family:var(--mono)}
+.qbar{position:relative;height:12px;background:var(--border);border-radius:6px;margin:6px 0 2px}
+.qbar i{position:absolute;top:0;height:100%;background:var(--brass);opacity:.35;border-radius:6px}
+.qbar b{position:absolute;top:-3px;width:3px;height:18px;background:var(--brass)}
+.qlab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="./">
+    <svg class="wk-badge" viewBox="0 0 100 100" role="img" aria-label="Whizkid Automations"><polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="#B8914A"/><polygon points="50,11 84,30.5 84,69.5 50,89 16,69.5 16,30.5" fill="none" stroke="#14233A" stroke-opacity=".5" stroke-width="1.8"/><text x="44" y="58" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="46" fill="#14233A">w</text><text x="63" y="76" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="700" font-size="42" fill="#F3ECDD" stroke="#14233A" stroke-width="2.4" paint-order="stroke">k</text></svg>
+    <div style="min-width:0">
+      <div class="logo" id="logo">—</div>
+      <div class="hd" id="hd">Game lines · Whizkid Automations</div>
+    </div>
+  </a>
+  <div class="spacer"></div>
+  <div class="pill" id="mode-pill">—</div>
+  <div class="pill" id="meta-pill">LOADING…</div>
+  <div class="pill" id="status-pill" title="board freshness">—</div>
+  <button class="hbtn" id="theme-btn" title="Switch light / dark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+</header>
+
+<nav>
+  <div class="tab active" data-page="projections">Projections</div>
+  <div class="tab" data-page="results">Results</div>
+  <div class="tab" data-page="model">Model</div>
+</nav>
+
+<div class="page active" id="page-projections">
+  <div class="controls">
+    <span class="cl">DATE</span><input type="date" id="day-inp"/>
+    <div class="sep"></div>
+    <span class="cl">SEARCH</span><input type="text" id="search-inp" placeholder="Team…"/>
+    <div class="sep"></div>
+    <span class="cl">SORT</span>
+    <div class="chips" id="sort-chips"><div class="chip active" data-sort="time">TIME</div><div class="chip" data-sort="ev">EV</div></div>
+    <div class="chip" id="priced-only-btn">PRICED ONLY</div>
+    <button class="btn" id="refresh-btn">↻ REFRESH</button>
+    <div class="n-results">SHOWING <span id="n-res">—</span></div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="proj-body">
+    <div class="tbl-wrap" id="tbl-wrap"><div class="empty">LOADING THE SLATE…</div></div>
+    <div class="detail" id="detail-panel">
+      <div class="d-empty" id="d-empty">Select a game to see every line, every book's price, the model's range and to price any line</div>
+      <div id="d-content" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-results"><div class="bt-page" id="bt-content"><div class="empty">LOADING RESULTS…</div></div></div>
+<div class="page" id="page-model"><div class="bt-page" id="md-content"><div class="empty">LOADING THE MODEL CHECK…</div></div></div>
+
+<div id="tip"></div>
+<footer>
+  <div><b>Whizkid Automations</b> · <span id="foot-p">—</span></div>
+  <div id="foot-m"></div>
+  <div id="clock"></div>
+</footer>
+
+<script>
+const API = location.pathname.replace(/\/[^\/]*$/, '');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let CFG = {tz:'America/New_York', min_ev:5}, SLATE = {games:[]}, SEL = null;
+const ST = {q:'', sort:'time', priced:false, day:''};
+async function j(url){ const r = await fetch(API + url); if(!r.ok){ throw new Error((await r.json().catch(()=>({}))).error || r.status); } return r.json(); }
+const pct = (p, d=1) => p==null || isNaN(p) ? '—' : (100*p).toFixed(d) + '%';
+const am = o => o==null || isNaN(o) ? '—' : (o > 0 ? '+' + Math.round(o) : '' + Math.round(o));
+const fairN = p => (p==null||p<=0||p>=1) ? null : Math.round(p >= .5 ? -100*p/(1-p) : 100*(1-p)/p);
+const sg = (v, d=1) => v==null || isNaN(v) ? '—' : (v>0?'+':'') + (+v).toFixed(d);
+const u = v => v==null || isNaN(v) ? '—' : (v>0?'+':'') + (+v).toFixed(2) + 'u';
+const tfmt = iso => { try{ return new Intl.DateTimeFormat('en-US',{timeZone:CFG.tz,hour:'numeric',minute:'2-digit'}).format(new Date(iso)); }catch(e){ return iso; } };
+const BOOKS = {draftkings:'DraftKings',fanduel:'FanDuel',betmgm:'BetMGM',fanatics:'Fanatics',bovada:'Bovada',lowvig:'LowVig',betonlineag:'BetOnline',betrivers:'BetRivers',williamhill_us:'Caesars',espnbet:'ESPN BET',ballybet:'Bally',betparx:'betPARX',hardrockbet:'Hard Rock',pinnacle:'Pinnacle',mybookieag:'MyBookie',betus:'BetUS'};
+const bk = k => BOOKS[k] || k || '';
+const SB = {draftkings:'DK',fanduel:'FD',betmgm:'MGM',fanatics:'FAN',bovada:'BOV',lowvig:'LV',betonlineag:'BOL',betrivers:'BR',williamhill_us:'CZR',espnbet:'ESPN',ballybet:'BAL',betparx:'PRX',hardrockbet:'HR',pinnacle:'PIN',mybookieag:'MYB',betus:'BUS'};
+const bks = k => SB[k] || (k||'').slice(0,4).toUpperCase();
+const REASON = {data_mode:'would bet (data mode)', below_min_ev:'below EV gate', above_max_ev:'over cap (shadow)', model_market_gap:'model–market gap',
+  started:'started', no_bettable_price:'no price', stale_line:'stale line', opposite_side:'other side', same_side_cap:'cap', capped:'cap', shadowed_by_line:'other line', already_bet:'already bet'};
+const MK = {h2h:'ML', spreads:'SPREAD', totals:'TOTAL'};
+
+function evTag(r){
+  if(!r || r.ev_pct==null) return '<span class="ev ev-n">—</span>';
+  const e = +r.ev_pct, t = `${e>0?'+':''}${e.toFixed(1)}%`;
+  if(r.qualifies) return `<span class="ev ev-q" title="qualifies: a paper-ledger play">${t}</span>`;
+  if(String(r.tier||'').startsWith('shadow')) return `<span class="ev ev-s" title="${esc(REASON[r.skip_reason]||r.skip_reason)}">${t}</span>`;
+  if(e > 0) return `<span class="ev ev-p" title="${esc(REASON[r.skip_reason]||r.skip_reason||'')}">${t}</span>`;
+  return `<span class="ev ev-n">${t}</span>`;
+}
+function lineTxt(mk, line, side, g){
+  if(mk==='h2h') return side==='over' ? (g.home_abbr || g.home) : (g.away_abbr || g.away);
+  if(mk==='spreads') return side==='over' ? sg(line,1) : sg(-line,1);
+  return (side==='over' ? 'o' : 'u') + (+line).toFixed(1);
+}
+function cell(m, mk, side, g){
+  if(!m || !m[side]) return '<td class="px">—</td><td></td>';
+  const r = m[side];
+  return `<td class="px">${esc(lineTxt(mk, m.line, side, g))} ${am(r.bet_odds)}<span class="bk" title="${esc(bk(r.book))}">${esc(bks(r.book))}</span></td><td>${evTag(r)}</td>`;
+}
+function modelTxt(mk, g){
+  if(mk==='h2h') return `${pct(g.p_home_win,0)}`;
+  if(mk==='spreads') return `${sg(-g.margin,1)}`;
+  return `${(+g.total).toFixed(1)}`;
+}
+function fairTxt(m, side){ const r = m && m[side]; return r ? am(fairN(r.p_model_over==null?null:(side==='over'?r.p_model_over:1-r.p_model_over))) : '—'; }
+
+function render(){
+  let gs = SLATE.games.slice();
+  if(ST.q) gs = gs.filter(g => (g.home+' '+g.away+' '+(g.home_name||'')+' '+(g.away_name||'')).toLowerCase().includes(ST.q));
+  if(ST.priced) gs = gs.filter(g => g.n_rows > 0);
+  const bev = g => g.best && g.best.ev_pct!=null ? +g.best.ev_pct : -999;
+  gs.sort(ST.sort==='ev' ? (a,b) => bev(b)-bev(a) : (a,b) => String(a.start_utc).localeCompare(String(b.start_utc)));
+  $('#n-res').textContent = gs.length;
+  if(!gs.length){ $('#tbl-wrap').innerHTML = `<div class="empty">${SLATE.games.length ? 'NO GAME MATCHES THE FILTER' : 'NO GAMES PROJECTED FOR THIS DATE'}</div>`; return; }
+  const head = `<table class="gb"><thead><tr><th>Tip (ET)</th><th>Matchup</th><th>Model<span class="hs">spread · total · win</span></th>
+    <th>Spread<span class="hs">best price</span></th><th>EV</th><th>Total<span class="hs">best price</span></th><th>EV</th><th>Moneyline<span class="hs">best price</span></th><th>EV</th></tr></thead>`;
+  const body = gs.map(g => {
+    const m = g.markets || {};
+    const has = g.n_qualify > 0;
+    return `<tbody data-id="${g.game_id}" class="${has?'has-q':''} ${SEL===g.game_id?'sel':''}">
+      <tr><td class="t span" rowspan="2">${tfmt(g.start_utc)}${g.neutral?'<div class="mt">neutral</div>':''}</td>
+        <td class="tm">${esc(g.away)}</td>
+        <td class="md span" rowspan="2">${esc(g.home)} ${modelTxt('spreads', g)}<span class="f">fair</span><br>${modelTxt('totals', g)} · ${pct(g.p_home_win,0)} ${esc(g.home)}</td>
+        ${cell(m.spreads,'spreads','under',g)}${cell(m.totals,'totals','over',g)}${cell(m.h2h,'h2h','under',g)}</tr>
+      <tr class="r2"><td class="tm">@ ${esc(g.home)}</td>${cell(m.spreads,'spreads','over',g)}${cell(m.totals,'totals','under',g)}${cell(m.h2h,'h2h','over',g)}</tr></tbody>`;
+  }).join('');
+  $('#tbl-wrap').innerHTML = head + body + '</table>';
+  document.querySelectorAll('.gb tbody').forEach(tb => tb.onclick = () => openGame(tb.dataset.id));
+}
+
+async function openGame(id){
+  SEL = id; document.querySelectorAll('.gb tbody').forEach(tb => tb.classList.toggle('sel', tb.dataset.id===id));
+  $('#d-empty').style.display = 'none'; const el = $('#d-content'); el.style.display = 'block'; el.innerHTML = '<div class="empty">LOADING…</div>';
+  try{
+    const g = await j(`/api/game/${id}?date=${SLATE.date}`);
+    const rows = (g.rows||[]).slice().sort((a,b) => (a.market+a.line).localeCompare(b.market+b.line) || (a.side>b.side?1:-1));
+    const q = g.quantiles || {};
+    const qb = (arr, lab) => !arr || !arr.length ? '' : (() => { const lo = arr[0], hi = arr[4], span = (hi-lo)||1, pos = v => 100*(v-lo)/span;
+      return `<div class="mt">${lab}: 80% of simulated games between ${arr[0].toFixed(0)} and ${arr[4].toFixed(0)} (median ${arr[2].toFixed(0)})</div>
+      <div class="qbar"><i style="left:${pos(arr[1])}%;width:${pos(arr[3])-pos(arr[1])}%"></i><b style="left:${pos(arr[2])}%"></b></div><div class="qlab"><span>${arr[0].toFixed(0)}</span><span>${arr[4].toFixed(0)}</span></div>`; })();
+    const books = (g.books||[]).slice().sort((a,b) => (a.market+a.book).localeCompare(b.market+b.book));
+    el.innerHTML = `<div class="dname">${esc(g.away_name||g.away)} @ ${esc(g.home_name||g.home)}</div>
+      <div class="dsub">${tfmt(g.start_utc)} ET${g.neutral?' · neutral site':''}${g.conf_game?' · conference':''}</div>
+      <div class="kv"><div><div class="k">Model spread</div><div class="v">${esc(g.home)} ${sg(-g.margin,1)}</div></div>
+        <div><div class="k">Model total</div><div class="v">${(+g.total).toFixed(1)}</div></div>
+        <div><div class="k">${esc(g.home)} win</div><div class="v">${pct(g.p_home_win,1)}</div></div>
+        <div><div class="k">Score</div><div class="v">${(+g.pts_away).toFixed(0)}–${(+g.pts_home).toFixed(0)}</div></div></div>
+      <div class="dh">Range (home margin, total)</div>${qb(q.margin,'Home margin')}${qb(q.total,'Total')}
+      <div class="dh">Every priced line</div>
+      ${rows.length ? `<table class="dt"><thead><tr><th>Bet</th><th>Price</th><th>Book</th><th>Model</th><th>Market</th><th>Blend</th><th>Fair</th><th>EV</th><th>Books</th><th></th></tr></thead><tbody>
+        ${rows.map(r => { const pm = r.side==='over'?r.p_model_over:1-r.p_model_over, pc = r.side==='over'?r.p_market_over:1-r.p_market_over, pb = r.side==='over'?r.p_bet_over:1-r.p_bet_over;
+          return `<tr class="${r.qualifies?'q':''}"><td>${esc(r.pick)}</td><td>${am(r.bet_odds)}</td><td>${esc(bk(r.book))}</td><td>${pct(pm)}</td><td>${pct(pc)}</td><td>${pct(pb)}</td><td>${am(fairN(pb))}</td><td>${evTag(r)}</td><td>${r.n_books??'—'}</td><td class="why">${r.qualifies?'PLAY':esc(REASON[r.skip_reason]??r.skip_reason??'')}</td></tr>`; }).join('')}</tbody></table>`
+        : '<div class="mt">No posted line for this game yet. Lines appear when the Odds API lists the game (women\'s games are often posted the same day).</div>'}
+      ${books.length ? `<div class="dh">Every book (latest quote; spreads and ML are the home side first)</div><table class="dt"><thead><tr><th>Book</th><th>Market</th><th>Line</th><th>Home / over</th><th>Away / under</th><th>Seen</th></tr></thead><tbody>
+        ${books.map(b => `<tr><td>${esc(bk(b.book))}</td><td>${MK[b.market]||esc(b.market)}</td><td>${b.market==='h2h'?'—':(+b.line).toFixed(1)}</td><td>${am(b.over_odds)}</td><td>${am(b.under_odds)}</td><td>${tfmt(b.fetched_at)}</td></tr>`).join('')}</tbody></table>` : ''}
+      <div class="dh">Price any line (model only)</div>
+      <div class="evrow"><select id="ev-m"><option value="spreads">Spread (home line)</option><option value="totals">Total</option><option value="h2h">Moneyline</option></select>
+        <select id="ev-s"><option value="over">Home / Over</option><option value="under">Away / Under</option></select>
+        <input id="ev-l" type="number" step="0.5" placeholder="line" value="${(-g.margin).toFixed(1)}"/><input id="ev-o" type="number" placeholder="odds" value="-110"/>
+        <button class="btn" id="ev-go">PRICE</button></div><div class="evout" id="ev-out"></div>`;
+    $('#ev-go').onclick = async () => {
+      const qs = `game_id=${id}&mtype=${$('#ev-m').value}&side=${$('#ev-s').value}&line=${$('#ev-l').value||0}&odds=${$('#ev-o').value}&date=${SLATE.date}`;
+      try{ const r = await j('/api/evaluate?' + qs);
+        $('#ev-out').innerHTML = `win ${pct(r.p_win)} · push ${pct(r.p_push)} · lose ${pct(r.p_lose)}<br>fair ${am(r.fair_odds)} · EV at your price ${r.ev_pct==null?'—':sg(r.ev_pct,1)+'%'}`;
+      }catch(e){ $('#ev-out').textContent = e.message; } };
+  }catch(e){ el.innerHTML = `<div class="empty err">${esc(e.message)}</div>`; }
+}
+
+function card(label, val, sub, cls){ return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-val ${cls||''}">${val}</div>${sub?`<div class="stat-sub">${sub}</div>`:''}</div>`; }
+function chart(daily){
+  if(!daily || daily.length < 2) return '';
+  const W = 900, H = 200, P = 30, xs = daily.map((_,i)=>i), ys = daily.map(d => d.cum_flat), ks = daily.map(d => d.cum_kelly);
+  const mn = Math.min(0, ...ys, ...ks), mx = Math.max(0, ...ys, ...ks), X = i => P + i*(W-2*P)/(daily.length-1), Y = v => H-P - (v-mn)*(H-2*P)/((mx-mn)||1);
+  const path = arr => arr.map((v,i) => `${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  return `<div class="pnl-chart"><svg viewBox="0 0 ${W} ${H}"><line x1="${P}" x2="${W-P}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border2)" stroke-dasharray="4 4"/>
+    <path d="${path(ys)}" fill="none" stroke="var(--brass)" stroke-width="2.5"/><path d="${path(ks)}" fill="none" stroke="var(--green)" stroke-width="1.5"/>
+    <text x="${P}" y="14" font-size="11" fill="var(--dim)">running units: flat 1u (brass), Kelly-sized (green)</text></svg></div>`;
+}
+function byTbl(obj, label){
+  const ks = Object.keys(obj||{}); if(!ks.length) return '';
+  return `<div class="section-hdr" style="font-size:16px;margin-top:10px">By ${label}</div><table class="bt-tbl"><thead><tr><th>${label}</th><th>N</th><th>W–L–P</th><th>Units</th><th>Kelly u</th><th>ROI</th><th>CLV</th></tr></thead><tbody>
+    ${ks.map(k => { const s = obj[k]; return `<tr><td>${esc(MK[k]||k)}</td><td>${s.n}</td><td>${s.wins}–${s.losses}–${s.pushes}</td><td>${u(s.units_flat)}</td><td>${u(s.units_kelly)}</td><td>${s.roi_flat==null?'—':sg(s.roi_flat,1)+'%'}</td><td>${s.clv_pct==null?'—':sg(s.clv_pct,2)+'%'}</td></tr>`; }).join('')}</tbody></table>`;
+}
+async function loadResults(){
+  try{
+    const r = await j('/api/results'); const p = r.perf || {}; const s = (r.mode==='live' ? p.bets : p.would_bet) || {};
+    const label = r.mode==='live' ? 'Paper ledger (plays shown and graded, not placed)' : 'Data mode: plays that would have qualified';
+    const plays = (r.plays||[]);
+    $('#bt-content').innerHTML = `<div class="section-hdr">Results</div><div class="mt" style="margin-bottom:8px">${label} · first-seen price · flat 1u and Kelly-sized units</div>
+      <div class="stat-grid">${card('Units (flat)', u(s.units_flat), s.n?`${s.n} graded`:'nothing graded yet', (s.units_flat||0)>=0?'pos':'neg')}
+        ${card('Units (Kelly)', u(s.units_kelly), 'stake % of bankroll as units')}
+        ${card('Record', s.n?`${s.wins}–${s.losses}–${s.pushes}`:'—', s.win_rate!=null?pct(s.win_rate)+' wins':'')}
+        ${card('ROI', s.roi_flat==null?'—':sg(s.roi_flat,1)+'%', 'flat stakes')}
+        ${card('Expected', u(s.exp_units), 'sum of EV at bet time')}
+        ${card('CLV', s.clv_pct==null?'—':sg(s.clv_pct,2)+'%', s.clv_n?`${s.clv_n} with a close`:'')}
+        ${card('Open', (r.open||[]).length, 'waiting for a result')}</div>
+      ${chart(r.daily)}
+      ${byTbl(r.mode==='live' ? p.bets_by_mtype : p.would_bet_by_mtype, 'market')}
+      <div class="section-hdr">Graded plays</div>${plays.length?'':'<div class="mt" style="padding:6px 0 10px">No play has qualified yet.</div>'}
+      <table class="bt-tbl"><thead><tr><th>Date</th><th>Game</th><th>Play</th><th>Price</th><th>Book</th><th>EV</th><th>Result</th><th>Units</th><th>Kelly u</th><th>CLV</th></tr></thead><tbody>
+      ${plays.slice(0,400).map(x => `<tr><td>${esc(x.date)}</td><td>${esc(x.game_key)}</td><td>${esc(x.pick)}</td><td>${am(x.bet_odds)}</td><td>${esc(bk(x.book))}</td><td>${x.ev_pct==null?'—':sg(x.ev_pct,1)+'%'}</td><td>${esc(x.result)}</td><td>${u(x.units_flat)}</td><td>${u(x.units_kelly)}</td><td>${x.clv_pct==null?'—':sg(x.clv_pct,2)+'%'}</td></tr>`).join('')}</tbody></table>`;
+  }catch(e){ $('#bt-content').innerHTML = `<div class="empty err">${esc(e.message)}</div>`; }
+}
+async function loadModel(){
+  try{
+    const m = await j('/api/model'); const cv = m.cv || {}; const bs = cv.by_season || {};
+    const mk = Object.entries(m.market_bt||{}).map(([k,v]) => { const rows = ['spread_open','spread_close','spread_pinnacle','total_open','total_close'].filter(x => v[x] && v[x].n);
+      return !rows.length ? '' : `<div class="section-hdr" style="font-size:16px;margin-top:10px">Against past lines (${esc(k)})</div><table class="bt-tbl"><thead><tr><th>Line</th><th>Games</th><th>Model error</th><th>Market error</th><th>Best blend weight on the model</th></tr></thead><tbody>
+      ${rows.map(x => `<tr><td>${x.replace('_',' ')}</td><td>${v[x].n}</td><td>${v[x].rmse_model}</td><td>${v[x].rmse_market}</td><td>${v[x].best_blend_w_model ?? v[x].best_w ?? '—'}</td></tr>`).join('')}</tbody></table>`; }).join('');
+    $('#md-content').innerHTML = `<div class="section-hdr">Model check</div><div class="mt">Walk-forward backtest: ratings fitted only on games before each day; stage 2 only on earlier seasons. Error = root mean squared error in points. PIT tails 0.20 = well calibrated.</div>
+      <table class="bt-tbl"><thead><tr><th>Season</th><th>Games</th><th>Margin error</th><th>Total error</th><th>Win log-loss</th><th>PIT tails (margin / total)</th></tr></thead><tbody>
+      ${Object.entries(bs).map(([s,v]) => `<tr><td>${s}</td><td>${v.n}</td><td>${v.margin_rmse}</td><td>${v.total_rmse}</td><td>${v.win_logloss}</td><td>${v.pit_tails_margin} / ${v.pit_tails_total}</td></tr>`).join('')}</tbody></table>${mk}`;
+  }catch(e){ $('#md-content').innerHTML = `<div class="empty err">${esc(e.message)}</div>`; }
+}
+async function load(){
+  try{
+    CFG = {...CFG, ...(await j('/api/config'))};
+    const name = CFG.product || 'Board';
+    document.title = `${name} · ${CFG.sport}`;
+    $('#logo').innerHTML = esc(name.slice(0, Math.ceil(name.length/2))) + '<b>' + esc(name.slice(Math.ceil(name.length/2))) + '</b>';
+    $('#hd').textContent = `${CFG.sport} · spread, total, moneyline · Whizkid Automations`;
+    $('#foot-p').textContent = `${name} v${CFG.version}`;
+    $('#mode-pill').textContent = CFG.mode==='live' ? 'PAPER LEDGER' : 'DATA MODE';
+    $('#legend').innerHTML = `Model = the simulation's fair spread (home team), total and home win chance. Each market shows the best price at <b>any</b> book for both sides, and the EV of that price after blending the model with the market. <b>Green fill</b> = qualifies (EV ≥ ${CFG.min_ev}%, ${CFG.min_ev_single_book}% with one book; paper ledger, not placed). Click a game for every line and book.`;
+    SLATE = await j('/api/slate' + (ST.day ? `?date=${ST.day}` : ''));
+    if(!ST.day) $('#day-inp').value = SLATE.date;
+    $('#meta-pill').textContent = `${SLATE.games.length} GAMES · ${SLATE.n_priced} PRICED · ${SLATE.n_qualify} PLAYS`;
+    const at = SLATE.priced_at || SLATE.built_at;
+    $('#status-pill').textContent = at ? 'UPDATED ' + tfmt(at) : 'NOT BUILT';
+    $('#status-pill').className = 'pill' + (at ? '' : ' off');
+    $('#foot-m').textContent = SLATE.telemetry ? `odds: ${SLATE.telemetry.events} listed · ${SLATE.telemetry.credits} credits last run` : 'no odds pulled today';
+    render();
+    if(SEL && SLATE.games.find(g => g.game_id===SEL)) openGame(SEL);
+  }catch(e){ $('#tbl-wrap').innerHTML = `<div class="empty err">${esc(e.message)}</div>`; $('#status-pill').textContent = 'OFFLINE'; $('#status-pill').className = 'pill off'; }
+}
+function gotoTab(page){
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id==='page-'+page));
+  if(page==='results') loadResults();
+  if(page==='model') loadModel();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => gotoTab(t.dataset.page));
+document.querySelectorAll('#sort-chips .chip').forEach(c => c.onclick = () => { document.querySelectorAll('#sort-chips .chip').forEach(x => x.classList.toggle('active', x===c)); ST.sort = c.dataset.sort; render(); });
+$('#priced-only-btn').onclick = e => { ST.priced = !ST.priced; e.target.classList.toggle('active', ST.priced); render(); };
+$('#search-inp').oninput = e => { ST.q = e.target.value.trim().toLowerCase(); render(); };
+$('#day-inp').onchange = e => { ST.day = e.target.value; SEL = null; load(); };
+$('#refresh-btn').onclick = load;
+$('#theme-btn').onclick = () => { const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const nx = cur==='dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', nx); try{ localStorage.setItem('wk-theme', nx); }catch(e){} };
+setInterval(() => { $('#clock').textContent = new Intl.DateTimeFormat('en-US',{timeZone:CFG.tz,hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date()) + ' ET'; }, 1000);
+load(); setInterval(load, 5*60*1000);
+</script>
+
+<a id="wk-snap-pill" href="../" title="Public snapshot: read-only copy of the Pi dashboard">
+  <span class="wk-snap-dot"></span><span>&#8592; Dashboards</span><span class="wk-snap-age" id="wk-snap-age">snapshot</span>
+</a>
+<style>
+#wk-snap-pill{position:fixed;left:12px;bottom:12px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:999px;background:var(--hdr-bg,#14233A);color:var(--hdr-text,#F4EFE4);
+  border:1px solid var(--brass-hi,#D4AF67);font:600 12px/1 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#wk-snap-pill:hover{background:var(--navy-ink,#1d3150)}
+#wk-snap-pill .wk-snap-age{font:500 11px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--hdr-dim,#B8C1CF)}
+#wk-snap-pill .wk-snap-dot{width:7px;height:7px;border-radius:50%;background:#D4AF67}
+@media print{#wk-snap-pill{display:none}}
+#refresh-btn{display:none!important}
+</style>
+<script>
+(function(){var el=document.getElementById('wk-snap-age');if(!el||!window.__WK_SNAP)return;
+fetch(window.__WK_SNAP.root+'status.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(s){
+var t=s&&s.published_at?new Date(s.published_at):null;if(!t)return;var m=Math.round((Date.now()-t)/60000);
+el.textContent='snapshot '+(m<1?'just now':m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago');
+el.title='published '+t.toLocaleString();}).catch(function(){});})();
+</script>
+</body>
+</html>
