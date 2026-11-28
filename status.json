@@ -1,0 +1,286 @@
+{
+ "published_at": "2026-11-28T14:32:42+00:00",
+ "built_at": "2026-11-28T14:32:41+00:00",
+ "boards": {
+  "nfl": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:11+00:00",
+   "last_try": "2026-11-28T14:30:11+00:00",
+   "data_asof": "2026-11-27T23:21:22.571292+00:00",
+   "digest": "422220e1c0e4",
+   "api": "8/9",
+   "errors": [
+    "api/wk/projections?period=projections_wk12_2026.csv: HTTP 500"
+   ]
+  },
+  "nflprops": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:11+00:00",
+   "last_try": "2026-11-28T14:30:11+00:00",
+   "data_asof": "2026-11-28T12:21:12.815881+00:00",
+   "digest": "4f4f70f19c81",
+   "api": "7/8",
+   "errors": [
+    "api/wk/plays: HTTP 404"
+   ]
+  },
+  "cbbprops": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:19+00:00",
+   "last_try": "2026-11-28T14:30:19+00:00",
+   "data_asof": "2026-11-28T11:47:14.991740+00:00",
+   "digest": "9435fa9260ff",
+   "api": "7/8",
+   "errors": [
+    "api/wk/plays: HTTP 404"
+   ]
+  },
+  "nhl-hub": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:24+00:00",
+   "last_try": "2026-11-28T14:30:24+00:00",
+   "data_asof": "2026-11-28T14:10:19+00:00",
+   "digest": "d4a4e9b09e31",
+   "api": "16/16",
+   "errors": []
+  },
+  "nhl": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:32+00:00",
+   "last_try": "2026-11-28T14:30:32+00:00",
+   "data_asof": "2026-11-28T14:01:15.639624+00:00",
+   "digest": "28c91d8936f2",
+   "api": "8/8",
+   "errors": []
+  },
+  "nhl-saves": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:34+00:00",
+   "last_try": "2026-11-28T14:30:34+00:00",
+   "data_asof": "2026-11-28T14:07:09.389446+00:00",
+   "digest": "c90af834310e",
+   "api": "8/8",
+   "errors": []
+  },
+  "nba-hub": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:36+00:00",
+   "last_try": "2026-11-28T14:30:36+00:00",
+   "data_asof": "2026-11-28T14:15:11+00:00",
+   "digest": "75dd70bbf281",
+   "api": "20/20",
+   "errors": []
+  },
+  "cbb": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:45+00:00",
+   "last_try": "2026-11-28T14:30:45+00:00",
+   "data_asof": "2026-11-28T11:47:14.991740+00:00",
+   "digest": "2d82b31cbf6c",
+   "api": "174/174",
+   "errors": []
+  },
+  "nba": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:51+00:00",
+   "last_try": "2026-11-28T14:30:51+00:00",
+   "data_asof": "2026-11-28T14:10:49.993263+00:00",
+   "digest": "5a19e5d09ae7",
+   "api": "8/8",
+   "errors": []
+  },
+  "nhl-games": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:53+00:00",
+   "last_try": "2026-11-28T14:30:53+00:00",
+   "data_asof": "2026-11-28T14:10:19+00:00",
+   "digest": "2d37bf678415",
+   "api": "6/6",
+   "errors": []
+  },
+  "nba-games": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:54+00:00",
+   "last_try": "2026-11-28T14:30:54+00:00",
+   "data_asof": null,
+   "digest": "729365634c31",
+   "api": "10/10",
+   "errors": []
+  },
+  "cb": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:54+00:00",
+   "last_try": "2026-11-28T14:30:54+00:00",
+   "data_asof": "2026-10-16T10:57:24.851210+00:00",
+   "digest": "412a9dbae5af",
+   "api": "9/9",
+   "errors": []
+  },
+  "cbh": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:57+00:00",
+   "last_try": "2026-11-28T14:30:57+00:00",
+   "data_asof": "2026-11-28T14:27:42.024155+00:00",
+   "digest": "0230d4b25ab9",
+   "api": "82/82",
+   "errors": []
+  },
+  "milb": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:57+00:00",
+   "last_try": "2026-11-28T14:30:57+00:00",
+   "data_asof": "2026-11-06T17:59:15.447325+00:00",
+   "digest": "481cfa6f97e2",
+   "api": "17/19",
+   "errors": [
+    "aa/api/game/2026-09-23_850994: HTTP 404",
+    "aa/api/game/2026-09-23_851003: HTTP 404"
+   ]
+  },
+  "golf": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:30:57+00:00",
+   "last_try": "2026-11-28T14:30:57+00:00",
+   "data_asof": "2026-11-27T17:30:12+00:00",
+   "digest": "ef17f903b061",
+   "api": "10/10",
+   "errors": []
+  },
+  "soccer": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:31:06+00:00",
+   "last_try": "2026-11-28T14:31:06+00:00",
+   "data_asof": "2026-11-28T13:29:47.934713+00:00",
+   "digest": "9aac4f2aa221",
+   "api": "117/117",
+   "errors": []
+  },
+  "soccerprops": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:31:11+00:00",
+   "last_try": "2026-11-28T14:31:11+00:00",
+   "data_asof": "2026-11-28T13:29:47.934713+00:00",
+   "digest": "5f1b5bdf2c1a",
+   "api": "12/12",
+   "errors": []
+  },
+  "f1": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:31:12+00:00",
+   "last_try": "2026-11-28T14:31:12+00:00",
+   "data_asof": "2026-11-28T05:03:24.869656+00:00",
+   "digest": "c8647aa67998",
+   "api": "26/26",
+   "errors": []
+  },
+  "wbb": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:31:17+00:00",
+   "last_try": "2026-11-28T14:31:17+00:00",
+   "data_asof": "2026-11-28T11:25:42.659084+00:00",
+   "digest": "cba0a376b224",
+   "api": "83/83",
+   "errors": [
+    "rewrite not found: href=\"/\""
+   ]
+  },
+  "mbb": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:21+00:00",
+   "last_try": "2026-11-28T14:32:21+00:00",
+   "data_asof": "2026-11-28T11:29:44.978165+00:00",
+   "digest": "641416e09506",
+   "api": "81/81",
+   "errors": [
+    "rewrite not found: href=\"/\""
+   ]
+  },
+  "cfb": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:23+00:00",
+   "last_try": "2026-11-28T14:32:23+00:00",
+   "data_asof": "2026-11-28T11:54:20.777416+00:00",
+   "digest": "4207b1f058d2",
+   "api": "98/98",
+   "errors": []
+  },
+  "cfblines": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:24+00:00",
+   "last_try": "2026-11-28T14:32:24+00:00",
+   "data_asof": "2026-11-28T11:37:12.870914+00:00",
+   "digest": "1e08817a40ec",
+   "api": "85/85",
+   "errors": [
+    "rewrite not found: href=\"/\""
+   ]
+  },
+  "cfbprops": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:37+00:00",
+   "last_try": "2026-11-28T14:32:37+00:00",
+   "data_asof": "2026-11-28T11:54:20.777416+00:00",
+   "digest": "e3582a336bae",
+   "api": "30/31",
+   "errors": [
+    "api/wk/plays: HTTP 404"
+   ]
+  },
+  "tennis": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:37+00:00",
+   "last_try": "2026-11-28T14:32:37+00:00",
+   "data_asof": "2026-11-28T09:14:35.482702+00:00",
+   "digest": "38d96b674c43",
+   "api": "9/9",
+   "errors": []
+  },
+  "table-tennis": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:41+00:00",
+   "last_try": "2026-11-28T14:32:41+00:00",
+   "data_asof": "2026-11-28T14:16:50+00:00",
+   "digest": "eb2ca7b52010",
+   "api": "64/64",
+   "errors": []
+  },
+  "weather": {
+   "ok": true,
+   "last_ok": "2026-11-28T14:32:41+00:00",
+   "last_try": "2026-11-28T14:32:41+00:00",
+   "data_asof": "2026-11-28T14:22:03.474873+00:00",
+   "digest": "8a8f509aeae3",
+   "api": "2/2",
+   "errors": []
+  }
+ },
+ "known": [
+  "cb",
+  "cbb",
+  "cbbprops",
+  "cbh",
+  "cfb",
+  "cfblines",
+  "cfbprops",
+  "f1",
+  "golf",
+  "mbb",
+  "milb",
+  "nba",
+  "nba-games",
+  "nba-hub",
+  "nfl",
+  "nflprops",
+  "nhl",
+  "nhl-games",
+  "nhl-hub",
+  "nhl-saves",
+  "soccer",
+  "soccerprops",
+  "table-tennis",
+  "tennis",
+  "wbb",
+  "weather"
+ ],
+ "redactions": 0
+}
